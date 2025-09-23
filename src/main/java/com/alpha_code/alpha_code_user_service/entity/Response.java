@@ -31,9 +31,9 @@ public class Response {
     @Column(name = "request_id", nullable = false, columnDefinition = "uuid")
     private UUID requestId;
 
-    @Size(max = 255)
     @NotNull
-    @Column(name = "response_content", nullable = false)
+    @Lob
+    @Column(name = "response_content", nullable = false, columnDefinition = "text")
     private String responseContent;
 
     @NotNull
@@ -46,7 +46,6 @@ public class Response {
 
     @Column(name = "last_updated")
     private LocalDateTime lastUpdated;
-
 
     //Relationship
     @ManyToOne(fetch = FetchType.LAZY)

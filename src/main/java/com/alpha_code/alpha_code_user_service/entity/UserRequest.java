@@ -34,9 +34,9 @@ public class UserRequest {
     @Column(name = "title", nullable = false)
     private String title;
 
-    @Size(max = 255)
     @NotNull
-    @Column(name = "description", nullable = false)
+    @Lob
+    @Column(name = "description", nullable = false, columnDefinition = "text")
     private String description;
 
     @Size(max = 255)
