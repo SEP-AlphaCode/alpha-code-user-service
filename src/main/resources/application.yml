@@ -1,0 +1,45 @@
+open:
+  api:
+    title: Alpha Mini API
+    version: 1.0.0
+    description: SEP project with AlphaMini API
+    serverUrl: ${OPEN_API_SERVERURL:http://localhost:8081}
+
+springdoc:
+  writer-with-order-by-keys: true
+  api-docs:
+    server:
+      url: ${OPEN_API_SERVERURL:http://localhost:8081}
+  swagger-ui:
+    path: /swagger
+    tags-sorter: alpha
+    operations-sorter: alpha
+    display-request-duration: true
+
+logging:
+  level:
+    org:
+      springdoc: INFO
+      springframework: INFO
+      io: INFO
+
+spring:
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6379}
+      password: ${SPRING_REDIS_PASSWORD:}
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+server:
+  forward-headers-strategy: native
+
+mqtt:
+  broker: ${MQTT_BROKER:tcp://localhost:1883}
+  clientId: ${MQTT_CLIENT_ID:spring-device-service}
+
+
+
