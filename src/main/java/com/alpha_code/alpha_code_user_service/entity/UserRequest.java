@@ -15,7 +15,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "user_requests")
+@Table(name = "user_request")
 public class UserRequest {
     @Id
     @GeneratedValue(generator = "UUID")

@@ -14,7 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "notifications")
+@Table(name = "notification")
 public class Notification {
     @Id
     @GeneratedValue(generator = "UUID")
