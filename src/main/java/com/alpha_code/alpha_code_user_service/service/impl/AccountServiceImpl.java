@@ -126,11 +126,13 @@ public class AccountServiceImpl implements AccountService {
         existingAccount.setUsername(accountDto.getUsername());
         existingAccount.setPassword(accountDto.getPassword());
         existingAccount.setFullName(accountDto.getFullName());
+        existingAccount.setEmail(accountDto.getEmail());
         existingAccount.setPhone(accountDto.getPhone());
         existingAccount.setGender(accountDto.getGender());
-        existingAccount.setLastUpdated(LocalDateTime.now());
-        existingAccount.setEmail(accountDto.getEmail());
         existingAccount.setRoleId(accountDto.getRoleId());
+        existingAccount.setLicenseId(accountDto.getLicenseId());
+        existingAccount.setStatus(accountDto.getStatus());
+        existingAccount.setLastUpdated(LocalDateTime.now());
 
         Account updatedEntity = repository.save(existingAccount);
         return AccountMapper.toDto(updatedEntity);
@@ -147,10 +149,13 @@ public class AccountServiceImpl implements AccountService {
         existingAccount.setUsername(accountDto.getUsername());
         existingAccount.setPassword(accountDto.getPassword());
         existingAccount.setFullName(accountDto.getFullName());
+        existingAccount.setEmail(accountDto.getEmail());
         existingAccount.setPhone(accountDto.getPhone());
         existingAccount.setGender(accountDto.getGender());
+        existingAccount.setRoleId(accountDto.getRoleId());
+        existingAccount.setLicenseId(accountDto.getLicenseId());
+        existingAccount.setStatus(accountDto.getStatus());
         existingAccount.setLastUpdated(LocalDateTime.now());
-        existingAccount.setEmail(accountDto.getEmail());
 
         if (avatarFile != null && !avatarFile.isEmpty()) {
             try {
@@ -219,14 +224,20 @@ public class AccountServiceImpl implements AccountService {
         if (accountDto.getFullName() != null) {
             existingAccount.setFullName(accountDto.getFullName());
         }
+        if (accountDto.getEmail() != null) {
+            existingAccount.setEmail(accountDto.getEmail());
+        }
         if (accountDto.getPhone() != null) {
             existingAccount.setPhone(accountDto.getPhone());
         }
         if (accountDto.getGender() != null) {
             existingAccount.setGender(accountDto.getGender());
         }
-        if (accountDto.getEmail() != null) {
-            existingAccount.setEmail(accountDto.getEmail());
+        if (accountDto.getLicenseId() != null) {
+            existingAccount.setLicenseId(accountDto.getLicenseId());
+        }
+        if (accountDto.getStatus() != null) {
+            existingAccount.setStatus(accountDto.getStatus());
         }
         if (accountDto.getRoleId() != null) {
             Role role = roleRepository.findById(accountDto.getRoleId())

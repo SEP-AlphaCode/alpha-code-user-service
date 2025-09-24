@@ -56,7 +56,7 @@ public class Notification {
     private Integer status;
 
     @Column(name = "last_updated")
-    private Integer lastUpdated;
+    private LocalDateTime lastUpdated;
 
     //Relationship
     @ManyToOne(fetch = FetchType.LAZY)
