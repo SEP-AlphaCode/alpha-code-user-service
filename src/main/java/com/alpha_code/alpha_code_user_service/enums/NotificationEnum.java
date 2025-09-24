@@ -5,19 +5,18 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum GenderEnum {
-    UNKNOWN(0, "KHÔNG XÁC ĐỊNH"),
-    MALE(1, "NAM"),
-    FEMALE(2, "NỮ");
+public enum NotificationEnum {
+    DELETED(0, "ĐÃ BỊ XÓA"),
+    ACTIVE(1, "HOẠT ĐỘNG");
 
     private final int code;
     private final String description;
 
     public static String fromCode(Integer code) {
         if (code == null) return null;
-        for (GenderEnum g : values()) {
-            if (g.code == code) {
-                return g.description;
+        for (NotificationEnum s : values()) {
+            if (s.code == code) {
+                return s.description;
             }
         }
         return "KHÔNG XÁC ĐỊNH";

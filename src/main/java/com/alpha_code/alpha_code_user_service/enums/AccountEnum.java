@@ -6,9 +6,9 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum AccountEnum {
-    DELETED(0, "DELETED"),
-    ACTIVE(1, "ACTIVE"),
-    BANNED(2, "BANNED");
+    DELETED(0, "ĐÃ BỊ XÓA"),
+    ACTIVE(1, "HOẠT ĐỘNG"),
+    BANNED(2, "ĐÃ BỊ CẤM");
 
     private final int code;
     private final String description;
@@ -20,6 +20,6 @@ public enum AccountEnum {
                 return s.description;
             }
         }
-        return "UNDEFINED";
+        return "KHÔNG XÁC ĐỊNH";
     }
 }

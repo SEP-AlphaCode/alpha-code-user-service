@@ -1,5 +1,6 @@
 package com.alpha_code.alpha_code_user_service.controller;
 
+import com.alpha_code.alpha_code_user_service.dto.AccountDto;
 import com.alpha_code.alpha_code_user_service.dto.LoginDto;
 import com.alpha_code.alpha_code_user_service.dto.ResetPassworDto;
 import com.alpha_code.alpha_code_user_service.dto.ResetPasswordRequestDto;
@@ -46,6 +47,12 @@ public class AuthController {
     @Operation(summary = "Login with username and password")
     public LoginDto.LoginResponse login(@RequestBody LoginDto.LoginRequest loginRequest) {
         return service.login(loginRequest);
+    }
+
+    @PostMapping("/register")
+    @Operation(summary = "Register new account")
+    public AccountDto register(@RequestBody LoginDto.RegisterRequest registerRequest) {
+        return service.register(registerRequest);
     }
 
     @PostMapping("/refresh-new-token")

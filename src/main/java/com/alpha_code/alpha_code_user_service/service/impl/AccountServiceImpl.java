@@ -38,7 +38,7 @@ public class AccountServiceImpl implements AccountService {
     private final BCryptPasswordEncoder passwordEncoder;
 
 
-    private static final String DEFAULT_ROLE = "Teacher";
+    private static final String DEFAULT_ROLE = "USER";
 
 
     @Override
@@ -59,7 +59,7 @@ public class AccountServiceImpl implements AccountService {
     @Cacheable(value = "accounts", key = "#id")
     public AccountDto getById(UUID id) {
         var account = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản"));
         return AccountMapper.toDto(account);
     }
 
@@ -68,13 +68,13 @@ public class AccountServiceImpl implements AccountService {
     @CacheEvict(value = {"accounts_list"}, allEntries = true)
     public AccountDto create(AccountDto accountDto, MultipartFile avatarFile) {
         if (repository.existsByUsername(accountDto.getUsername())) {
-            throw new ConflictException("Username is already taken");
+            throw new ConflictException("Tên đăng nhập đã được sử dụng");
         }
         if (repository.existsByEmail(accountDto.getEmail())) {
-            throw new ConflictException("Email is already registered");
+            throw new ConflictException("Email đã được sử dụng");
         }
         if (repository.existsByPhone(accountDto.getPhone())) {
-            throw new ConflictException("Phone is already used");
+            throw new ConflictException("Số điện thoại đã được sử dụng");
         }
 
         Account entity = AccountMapper.toEntity(accountDto);
@@ -85,7 +85,7 @@ public class AccountServiceImpl implements AccountService {
 
         if (accountDto.getRoleId() != null) {
             Role role = roleRepository.findById(accountDto.getRoleId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Vai trò"));
             entity.setRole(role);
         } else {
             Optional<Role> roleOpt = roleRepository.findByNameIgnoreCase(DEFAULT_ROLE);
@@ -111,7 +111,7 @@ public class AccountServiceImpl implements AccountService {
             Account savedEntity = repository.save(entity);
             return AccountMapper.toDto(savedEntity);
         } catch (Exception e) {
-            throw new RuntimeException("Lỗi khi tạo Account", e);
+            throw new RuntimeException("Lỗi khi tạo Tài khoản", e);
         }
     }
 
@@ -121,7 +121,7 @@ public class AccountServiceImpl implements AccountService {
     @CacheEvict(value = {"accounts_list"}, allEntries = true)
     public AccountDto update(UUID id, AccountDto accountDto) {
         Account existingAccount = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Tài khoản"));
 
         existingAccount.setUsername(accountDto.getUsername());
         existingAccount.setPassword(accountDto.getPassword());
@@ -144,7 +144,7 @@ public class AccountServiceImpl implements AccountService {
     @CacheEvict(value = {"accounts_list"}, allEntries = true)
     public AccountDto updateProfile(UUID id, AccountDto accountDto, MultipartFile avatarFile) {
         Account existingAccount = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Tài khoản"));
 
         existingAccount.setUsername(accountDto.getUsername());
         existingAccount.setPassword(accountDto.getPassword());
@@ -177,7 +177,7 @@ public class AccountServiceImpl implements AccountService {
     @CacheEvict(value = {"accounts_list"}, allEntries = true)
     public AccountDto patchUpdate(UUID id, AccountDto accountDto) {
         Account existingAccount = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Tài khoản"));
 
         if (accountDto.getUsername() != null) {
             existingAccount.setUsername(accountDto.getUsername());
@@ -213,7 +213,7 @@ public class AccountServiceImpl implements AccountService {
     @CacheEvict(value = {"accounts_list"}, allEntries = true)
     public AccountDto patchUpdateProfile(UUID id, AccountDto accountDto, MultipartFile avatarFile) {
         Account existingAccount = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Tài khoản"));
 
         if (accountDto.getUsername() != null) {
             existingAccount.setUsername(accountDto.getUsername());
@@ -241,7 +241,7 @@ public class AccountServiceImpl implements AccountService {
         }
         if (accountDto.getRoleId() != null) {
             Role role = roleRepository.findById(accountDto.getRoleId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Vai trò"));
             existingAccount.setRole(role);
         }
 
@@ -268,7 +268,7 @@ public class AccountServiceImpl implements AccountService {
     @CacheEvict(value = {"accounts_list"}, allEntries = true)
     public AccountDto changePassword(UUID id, String oldPassword, String newPassword) {
         Account existingAccount = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Tài khoản"));
 
         if (!passwordEncoder.matches(oldPassword, existingAccount.getPassword())) {
             throw new AuthenticationException("Old password is incorrect");
@@ -286,7 +286,7 @@ public class AccountServiceImpl implements AccountService {
     @CacheEvict(value = {"accounts_list"}, allEntries = true)
     public AccountDto changeStatus(UUID id, Integer status) {
         Account existingAccount = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Tài khoản"));
 
         existingAccount.setStatus(status);
         existingAccount.setLastUpdated(LocalDateTime.now());
@@ -300,7 +300,7 @@ public class AccountServiceImpl implements AccountService {
     public String delete(UUID id) {
         try {
             Account account = repository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Tài khoản"));
 
 //        repository.delete(id);
             account.setStatus(0);

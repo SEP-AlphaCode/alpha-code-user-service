@@ -44,7 +44,7 @@ public class OpenAPIConfig {
     public GroupedOpenApi groupedOpenApi() {
         return GroupedOpenApi.builder()
                 .group("api-services")
-                .packagesToScan("com.alphacode.alphacodeapi.controller")
+                .packagesToScan("com.alpha_code.alpha_code_user_service.controller")
                 //.pathsToMatch("/api/**")
                 .build();
     }

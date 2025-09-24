@@ -1,5 +1,7 @@
 package com.alpha_code.alpha_code_user_service.dto;
 
+import com.alpha_code.alpha_code_user_service.enums.NotificationEnum;
+import com.alpha_code.alpha_code_user_service.enums.RoleEnum;
 import com.alpha_code.alpha_code_user_service.validation.OnCreate;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
@@ -44,5 +46,10 @@ public class NotificationDto {
     private Integer status;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private Integer lastUpdated;
+    private LocalDateTime lastUpdated;
+
+    @JsonProperty(value = "statusText", access = JsonProperty.Access.READ_ONLY)
+    public String getStatusText() {
+        return NotificationEnum.fromCode(this.status);
+    }
 }

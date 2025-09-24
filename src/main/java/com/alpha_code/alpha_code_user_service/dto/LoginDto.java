@@ -25,5 +25,18 @@ public class LoginDto implements Serializable {
         private String accessToken;
         private String refreshToken;
     }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class RegisterRequest {
+        private String username;
+        private String password;
+        private String fullName;
+        private String email;
+        private String phone;
+        private Integer gender;
+    }
 }
 

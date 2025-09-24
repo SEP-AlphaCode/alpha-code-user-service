@@ -1,11 +1,16 @@
 package com.alpha_code.alpha_code_user_service.service.impl;
 
+import com.alpha_code.alpha_code_user_service.dto.AccountDto;
 import com.alpha_code.alpha_code_user_service.dto.LoginDto;
 import com.alpha_code.alpha_code_user_service.dto.ResetPassworDto;
 import com.alpha_code.alpha_code_user_service.entity.Account;
+import com.alpha_code.alpha_code_user_service.entity.Role;
 import com.alpha_code.alpha_code_user_service.exception.AuthenticationException;
+import com.alpha_code.alpha_code_user_service.exception.ConflictException;
 import com.alpha_code.alpha_code_user_service.exception.ResourceNotFoundException;
+import com.alpha_code.alpha_code_user_service.mapper.AccountMapper;
 import com.alpha_code.alpha_code_user_service.repository.AccountRepository;
+import com.alpha_code.alpha_code_user_service.repository.RoleRepository;
 import com.alpha_code.alpha_code_user_service.service.AuthService;
 import com.alpha_code.alpha_code_user_service.service.DashboardService;
 import com.alpha_code.alpha_code_user_service.service.RedisRefreshTokenService;
@@ -25,6 +30,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -34,6 +40,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final AccountRepository repository;
 //    private final RefreshTokenRepository refreshTokenRepository;
+    private final RoleRepository roleRepository;
     private final RedisRefreshTokenService redisRefreshTokenService;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
@@ -56,10 +63,10 @@ public class AuthServiceImpl implements AuthService {
 
         // If no account is found, throw AuthenticationException
         Account account = accountOptional.orElseThrow(() ->
-                new AuthenticationException("Invalid username or email"));
+                new AuthenticationException("Sai tài khoản hoặc mật khẩu"));
 
         if (!passwordEncoder.matches(loginRequest.getPassword(), account.getPassword())) {
-            throw new AuthenticationException("Invalid username or password");
+            throw new AuthenticationException("Sai tài khoản hoặc mật khẩu");
         }
 
         if (account.getStatus() == 0) {
@@ -90,6 +97,43 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public AccountDto register(LoginDto.RegisterRequest registerRequest) {
+        if (repository.existsByUsername(registerRequest.getUsername())) {
+            throw new ConflictException("Tên đăng nhập đã được sử dụng");
+        }
+        if (repository.existsByEmail(registerRequest.getEmail())) {
+            throw new ConflictException("Email đã được sử dụng");
+        }
+        if (repository.existsByPhone(registerRequest.getPhone())) {
+            throw new ConflictException("Số điện thoại đã được sử dụng");
+        }
+
+        Account entity = new Account();
+        entity.setUsername(registerRequest.getUsername());
+        entity.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+        entity.setFullName(registerRequest.getFullName());
+        entity.setEmail(registerRequest.getEmail());
+        entity.setPhone(registerRequest.getPhone());
+        entity.setGender(registerRequest.getGender());
+        entity.setStatus(1);
+        var roleUser = roleRepository.findByNameIgnoreCase("USER");
+        if (roleUser.isEmpty()) {
+            Role newRole = new Role();
+            newRole.setName("USER");
+            newRole.setStatus(1);
+            roleRepository.save(newRole);
+            roleUser = roleRepository.findByNameIgnoreCase("USER");
+        }
+        entity.setRoleId(roleUser.get().getId());
+        entity.setRole(roleUser.get());
+        entity.setCreatedDate(LocalDateTime.now());
+
+        Account savedEntity = repository.save(entity);
+
+        return AccountMapper.toDto(savedEntity);
+    }
+
+    @Override
     @Transactional
     public LoginDto.LoginResponse googleLogin(String request) {
         try {
@@ -101,10 +145,30 @@ public class AuthServiceImpl implements AuthService {
 
             Account account = repository.findByEmail(email).orElse(null);
 
-            // If no account is found, throw AuthenticationException
+            // If no account is found, create a new account
             if (account == null) {
-                throw new AuthenticationException("Your account does not have permission to access this application" +
-                        ". Please contact the administrator.");
+                Account entity = new Account();
+                entity.setUsername(email);
+                entity.setPassword(passwordEncoder.encode(""));
+                entity.setFullName(name);
+                entity.setEmail(email);
+                entity.setPhone("");
+                entity.setGender(0);
+                entity.setImage(firebaseToken.getPicture());
+                entity.setCreatedDate(LocalDateTime.now());
+                entity.setStatus(1);
+                var roleUser = roleRepository.findByNameIgnoreCase("USER");
+                if (roleUser.isEmpty()) {
+                    Role newRole = new Role();
+                    newRole.setName("USER");
+                    newRole.setStatus(1);
+                    roleRepository.save(newRole);
+                    roleUser = roleRepository.findByNameIgnoreCase("USER");
+                }
+                entity.setRoleId(roleUser.get().getId());
+                entity.setRole(roleUser.get());
+                Account savedEntity = repository.save(entity);
+                account = savedEntity;
             }
 
             String accessToken = jwtUtil.generateAccessToken(account);
