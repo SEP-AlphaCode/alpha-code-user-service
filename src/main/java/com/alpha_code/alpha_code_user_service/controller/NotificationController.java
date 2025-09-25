@@ -64,4 +64,10 @@ public class NotificationController {
     public NotificationDto changeStatus(@PathVariable UUID id, @RequestParam Integer status) {
         return service.changeStatus(id, status);
     }
+
+    @PatchMapping("/{id}/read")
+    @Operation(summary = "Read notification")
+    public NotificationDto readNotification(@PathVariable UUID id) {
+        return service.readNotification(id);
+    }
 }

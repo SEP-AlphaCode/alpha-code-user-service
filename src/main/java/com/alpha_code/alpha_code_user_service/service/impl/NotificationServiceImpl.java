@@ -54,7 +54,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional
-    @CachePut(value = "notifications", key = "#notificationDto.id")
+    @CacheEvict(value = {"notifications_list", "notifications"}, allEntries = true)
     public NotificationDto create(NotificationDto notificationDto) {
         var entity = NotificationMapper.toEntity(notificationDto);
         entity.setCreatedDate(LocalDateTime.now());
@@ -65,6 +65,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "notifications_list", allEntries = true)
     @CachePut(value = "notifications", key = "#notificationDto.id")
     public NotificationDto update(UUID id, NotificationDto notificationDto) {
         Notification entity = repository.findById(id)
@@ -83,6 +84,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "notifications_list", allEntries = true)
     @CachePut(value = "notifications", key = "#notificationDto.id")
     public NotificationDto patchUpdate(UUID id, NotificationDto notificationDto) {
         Notification entity = repository.findById(id)
@@ -113,7 +115,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional
-    @CacheEvict(value = "notifications", allEntries = true)
+    @CacheEvict(value = "{notifications_list, notifications}", allEntries = true)
     public String delete(UUID id) {
         try {
             Notification entity = repository.findById(id)
@@ -138,6 +140,19 @@ public class NotificationServiceImpl implements NotificationService {
         entity.setStatus(status);
         entity.setLastUpdated(LocalDateTime.now());
         Notification savedEntity = repository.save(entity);
+        return NotificationMapper.toDto(savedEntity);
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "notifications", allEntries = true)
+    public NotificationDto readNotification(UUID id) {
+        var notification = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
+
+        notification.setIsRead(true);
+        notification.setLastUpdated(LocalDateTime.now());
+        Notification savedEntity = repository.save(notification);
         return NotificationMapper.toDto(savedEntity);
     }
 }

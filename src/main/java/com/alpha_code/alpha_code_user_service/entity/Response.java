@@ -54,5 +54,5 @@ public class Response {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "request_id", nullable = false, insertable = false, updatable = false)
-    private UserRequest request;
+    private Request request;
 }

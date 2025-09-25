@@ -16,7 +16,7 @@ import java.util.UUID;
 @Builder
 @Entity
 @Table(name = "user_request")
-public class UserRequest {
+public class Request {
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(

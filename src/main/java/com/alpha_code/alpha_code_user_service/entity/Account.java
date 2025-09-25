@@ -91,6 +91,8 @@ public class Account {
     private List<Response> responses;
 
     @OneToMany(mappedBy = "account", fetch = FetchType.LAZY)
-    private List<UserRequest> userRequests;
+    private List<Request> userRequests;
 
+    @OneToMany(mappedBy = "account", fetch = FetchType.LAZY)
+    private List<Profile> profiles;
 }

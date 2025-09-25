@@ -20,4 +20,6 @@ public interface NotificationService {
     String delete(UUID id);
 
     NotificationDto changeStatus(UUID id, Integer status);
+
+    NotificationDto readNotification(UUID id);
 }
