@@ -13,12 +13,10 @@ import java.util.UUID;
 @Repository
 public interface ResponseRepository extends JpaRepository<Response, UUID> {
     @Query("SELECT r FROM Response r " +
-            "WHERE (:keyword IS NULL OR LOWER(r.responseContent) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-            "AND (:status IS NULL OR r.status = :status) " +
+            "WHERE (:status IS NULL OR r.status = :status) " +
             "AND (:requestId IS NULL OR r.requestId = :requestId) " +
             "AND (:responderId IS NULL OR r.responderId = :responderId)")
     Page<Response> search(
-            @Param("keyword") String keyword,
             @Param("status") Integer status,
             @Param("requestId") UUID requestId,
             @Param("responderId") UUID responderId,

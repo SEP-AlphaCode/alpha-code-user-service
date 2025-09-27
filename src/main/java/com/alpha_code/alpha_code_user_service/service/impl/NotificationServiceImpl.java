@@ -7,7 +7,7 @@ import com.alpha_code.alpha_code_user_service.exception.ResourceNotFoundExceptio
 import com.alpha_code.alpha_code_user_service.mapper.NotificationMapper;
 import com.alpha_code.alpha_code_user_service.repository.NotificationRepository;
 import com.alpha_code.alpha_code_user_service.service.NotificationService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;

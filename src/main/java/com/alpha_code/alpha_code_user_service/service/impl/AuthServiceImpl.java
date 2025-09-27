@@ -14,6 +14,7 @@ import com.alpha_code.alpha_code_user_service.repository.RoleRepository;
 import com.alpha_code.alpha_code_user_service.service.AuthService;
 import com.alpha_code.alpha_code_user_service.service.DashboardService;
 import com.alpha_code.alpha_code_user_service.service.RedisRefreshTokenService;
+import com.alpha_code.alpha_code_user_service.service.S3Service;
 import com.alpha_code.alpha_code_user_service.util.EmailBody;
 import com.alpha_code.alpha_code_user_service.util.JwtUtil;
 import com.google.firebase.auth.FirebaseAuth;
@@ -30,7 +31,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -44,6 +47,7 @@ public class AuthServiceImpl implements AuthService {
     private final RedisRefreshTokenService redisRefreshTokenService;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final S3Service s3Service;
     private final DashboardService dashboardService;
     @Value("${web-base-url}")
     private String webBaseUrl;
@@ -123,6 +127,32 @@ public class AuthServiceImpl implements AuthService {
             newRole.setStatus(1);
             roleRepository.save(newRole);
             roleUser = roleRepository.findByNameIgnoreCase("USER");
+        }
+
+        if (registerRequest.getAvatarFile() != null && !registerRequest.getAvatarFile().isEmpty()) {
+            try {
+                String fileKey = "avatars/" + System.currentTimeMillis() + "_" + registerRequest.getAvatarFile().getOriginalFilename();
+                String avatarUrl = s3Service.uploadBytes(registerRequest.getAvatarFile().getBytes(), fileKey, registerRequest.getAvatarFile().getContentType());
+                entity.setImage(avatarUrl);
+            } catch (Exception e) {
+                throw new RuntimeException("Lỗi khi tải Ảnh đại diện", e);
+            }
+
+        } else {
+            try {
+                ClassPathResource resource = new ClassPathResource("static/images/alphacode-logo.png");
+                byte[] defaultImageBytes = resource.getInputStream().readAllBytes();
+
+                // Encode sang base64
+                String base64Image = Base64.getEncoder().encodeToString(defaultImageBytes);
+
+                // Thêm prefix để FE load trực tiếp
+                String dataUri = "data:image/png;base64," + base64Image;
+
+                entity.setImage(dataUri);
+            } catch (IOException e) {
+                throw new RuntimeException("Lỗi khi đọc ảnh mặc định", e);
+            }
         }
         entity.setRoleId(roleUser.get().getId());
         entity.setRole(roleUser.get());

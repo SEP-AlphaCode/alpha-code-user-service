@@ -3,13 +3,13 @@ open:
     title: Alpha Mini API
     version: 1.0.0
     description: SEP project with AlphaMini API
-    serverUrl: ${OPEN_API_SERVERURL:http://localhost:8081}
+    serverUrl: ${OPEN_API_SERVERURL:http://localhost:8082}
 
 springdoc:
   writer-with-order-by-keys: true
   api-docs:
     server:
-      url: ${OPEN_API_SERVERURL:http://localhost:8081}
+      url: ${OPEN_API_SERVERURL:http://localhost:8082}
   swagger-ui:
     path: /swagger
     tags-sorter: alpha

@@ -24,11 +24,10 @@ public class ResponseController {
     @Operation(summary = "Get all responses with pagination and optional filters")
     public PagedResult<ResponseDto> getAllResponse(@RequestParam(value = "page", defaultValue = "1") int page,
                                                    @RequestParam(value = "size", defaultValue = "10") int size,
-                                                   @RequestParam(value = "keyword", required = false) String keyword,
                                                    @RequestParam(value = "status", required = false) Integer status,
                                                    @RequestParam(value = "requestId", required = false) UUID requestId,
                                                    @RequestParam(value = "responderId", required = false) UUID responderId) {
-        return service.getAll(page, size, keyword, status, requestId, responderId);
+        return service.getAll(page, size, status, requestId, responderId);
     }
 
     @GetMapping("/{id}")
