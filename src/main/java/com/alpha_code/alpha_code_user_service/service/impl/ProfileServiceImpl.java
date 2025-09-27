@@ -10,7 +10,6 @@ import com.alpha_code.alpha_code_user_service.repository.AccountRepository;
 import com.alpha_code.alpha_code_user_service.repository.ProfileRepository;
 import com.alpha_code.alpha_code_user_service.service.ProfileService;
 import com.alpha_code.alpha_code_user_service.service.S3Service;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -20,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;

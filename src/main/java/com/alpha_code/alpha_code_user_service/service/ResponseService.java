@@ -6,7 +6,7 @@ import com.alpha_code.alpha_code_user_service.dto.ResponseDto;
 import java.util.UUID;
 
 public interface ResponseService {
-    PagedResult<ResponseDto> getAll(int page, int size, String keyword, Integer status, UUID requestId, UUID responderId);
+    PagedResult<ResponseDto> getAll(int page, int size, Integer status, UUID requestId, UUID responderId);
 
     ResponseDto getById(UUID id);
 

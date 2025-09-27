@@ -6,7 +6,7 @@ import com.alpha_code.alpha_code_user_service.entity.Request;
 import com.alpha_code.alpha_code_user_service.mapper.RequestMapper;
 import com.alpha_code.alpha_code_user_service.repository.RequestRepository;
 import com.alpha_code.alpha_code_user_service.service.RequestService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
