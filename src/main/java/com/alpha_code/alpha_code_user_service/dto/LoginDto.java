@@ -1,5 +1,6 @@
 package com.alpha_code.alpha_code_user_service.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.mail.Multipart;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,6 +40,8 @@ public class LoginDto implements Serializable {
         private String email;
         private String phone;
         private Integer gender;
+
+        @JsonProperty(access =  JsonProperty.Access.WRITE_ONLY)
         private MultipartFile avatarFile;
     }
 }
