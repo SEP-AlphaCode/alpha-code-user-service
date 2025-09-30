@@ -15,7 +15,7 @@ FROM eclipse-temurin:24-jdk AS runtime
 
 WORKDIR /app
 
-COPY --from=build /app/target/alpha-code-course-service-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=build /app/target/alpha-code-user-service-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 8092
 
