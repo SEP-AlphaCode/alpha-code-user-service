@@ -60,16 +60,16 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public LoginDto.LoginResponse login(LoginDto.LoginRequest loginRequest) {
-        Optional<Account> accountOptional = repository.findAccountByUsername(loginRequest.getUsername());
+        Optional<Account> accountOptional = repository.findAccountByUsername(loginRequest.getUsername().trim());
         if (accountOptional.isEmpty()) {
-            accountOptional = repository.findByEmail(loginRequest.getUsername());
+            accountOptional = repository.findByEmail(loginRequest.getUsername().trim());
         }
 
         // If no account is found, throw AuthenticationException
         Account account = accountOptional.orElseThrow(() ->
                 new AuthenticationException("Sai tài khoản hoặc mật khẩu"));
 
-        if (!passwordEncoder.matches(loginRequest.getPassword(), account.getPassword())) {
+        if (!passwordEncoder.matches(loginRequest.getPassword().trim(), account.getPassword())) {
             throw new AuthenticationException("Sai tài khoản hoặc mật khẩu");
         }
 
@@ -102,7 +102,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AccountDto register(LoginDto.RegisterRequest registerRequest) {
-        if (repository.existsByUsername(registerRequest.getUsername())) {
+        if (repository.existsByUsername(registerRequest.getUsername().trim())) {
             throw new ConflictException("Tên đăng nhập đã được sử dụng");
         }
         if (repository.existsByEmail(registerRequest.getEmail())) {
@@ -113,8 +113,8 @@ public class AuthServiceImpl implements AuthService {
         }
 
         Account entity = new Account();
-        entity.setUsername(registerRequest.getUsername());
-        entity.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+        entity.setUsername(registerRequest.getUsername().trim());
+        entity.setPassword(passwordEncoder.encode(registerRequest.getPassword().trim()));
         entity.setFullName(registerRequest.getFullName());
         entity.setEmail(registerRequest.getEmail());
         entity.setPhone(registerRequest.getPhone());
