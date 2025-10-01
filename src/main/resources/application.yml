@@ -33,6 +33,13 @@ spring:
     multipart:
       max-file-size: 50MB
       max-request-size: 50MB
+  application:
+    name: user-service
+
+#  eureka:
+#    client:
+#      service-url:
+#        defaultZone: http://localhost:8761/eureka/
 
 server:
   forward-headers-strategy: native
@@ -40,6 +47,14 @@ server:
 mqtt:
   broker: ${MQTT_BROKER:tcp://localhost:1883}
   clientId: ${MQTT_CLIENT_ID:spring-device-service}
+
+grpc:
+  server:
+    port: ${grpc.user-service.port}
+    address: 0.0.0.0
+    security:
+      enabled: false  # dùng TLS=true nếu cần
+
 
 
 

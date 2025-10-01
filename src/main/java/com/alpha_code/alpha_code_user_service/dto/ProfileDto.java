@@ -55,6 +55,7 @@ public class ProfileDto implements Serializable {
     @Range(min = 0, max = 1, message = "Rate phải trong khoảng 0 đến 1")
     private Integer status;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private MultipartFile avatarFile;
 
     @JsonProperty(value = "statusText", access = JsonProperty.Access.READ_ONLY)

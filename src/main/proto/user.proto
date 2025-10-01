@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package user;
+
+// Tên service
+service UserService {
+  // RPC lấy thông tin account theo accountId
+  rpc GetAccount(GetAccountRequest) returns (AccountInformation);
+}
+
+// Request
+message GetAccountRequest {
+  string accountId = 1;
+}
+
+// Response
+message AccountInformation {
+  string accountId = 1;
+  string fullName = 2;
+  string email = 3;
+  string phone = 4;
+  string gender = 5;
+  string image = 6;
+}
