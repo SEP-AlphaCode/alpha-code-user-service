@@ -48,5 +48,13 @@ mqtt:
   broker: ${MQTT_BROKER:tcp://localhost:1883}
   clientId: ${MQTT_CLIENT_ID:spring-device-service}
 
+grpc:
+  server:
+    port: ${grpc.user-service.port}
+    address: 0.0.0.0
+    security:
+      enabled: false  # dùng TLS=true nếu cần
+
+
 
 
