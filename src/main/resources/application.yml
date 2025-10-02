@@ -50,7 +50,7 @@ mqtt:
 
 grpc:
   server:
-    port: ${grpc.user-service.port}
+    port: ${GRPC_USER_SERVICE_PORT}
     address: 0.0.0.0
     security:
       enabled: false  # dùng TLS=true nếu cần
