@@ -140,7 +140,7 @@ public class AuthServiceImpl implements AuthService {
 
         } else {
             try {
-                ClassPathResource resource = new ClassPathResource("static/images/alphacode-logo.png");
+                ClassPathResource resource = new ClassPathResource("images/alphacode-logo.png");
                 byte[] defaultImageBytes = resource.getInputStream().readAllBytes();
 
                 // Encode sang base64
@@ -247,7 +247,7 @@ public class AuthServiceImpl implements AuthService {
         helper.setText(emailBody, true);
 
         // Put logo picture (inline image với cid:alphacode-logo)
-        ClassPathResource logoImage = new ClassPathResource("static/images/alphacode-logo.png");
+        ClassPathResource logoImage = new ClassPathResource("images/alphacode-logo.png");
         helper.addInline("alphacode-logo", logoImage);
 
         mailSender.send(message);
