@@ -23,6 +23,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import user.User.AccountInformation;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -42,9 +43,11 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     @Cacheable(value = "grpc_account", key = "{#id}")
-    public Account findAccountByIdGrpc(UUID id) {
-        return repository.findAccountByIdGrpc(id)
+    public AccountInformation findAccountByIdGrpc(UUID id) {
+        var account = repository.findAccountByIdGrpc(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản"));
+
+        return AccountMapper.toAccountInformationGrpc(account);
     }
 
 

@@ -4,6 +4,7 @@ import com.alpha_code.alpha_code_user_service.dto.AccountDto;
 import com.alpha_code.alpha_code_user_service.dto.PagedResult;
 import com.alpha_code.alpha_code_user_service.entity.Account;
 import org.springframework.web.multipart.MultipartFile;
+import user.User;
 
 import java.util.UUID;
 
@@ -30,5 +31,5 @@ public interface AccountService {
 
     AccountDto findAccountByFullName(String fullName);
 
-    Account findAccountByIdGrpc(UUID id);
+    User.AccountInformation findAccountByIdGrpc(UUID id);
 }

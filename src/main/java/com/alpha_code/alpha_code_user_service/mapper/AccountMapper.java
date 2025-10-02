@@ -3,6 +3,8 @@ package com.alpha_code.alpha_code_user_service.mapper;
 
 import com.alpha_code.alpha_code_user_service.dto.AccountDto;
 import com.alpha_code.alpha_code_user_service.entity.Account;
+import com.alpha_code.alpha_code_user_service.enums.AccountEnum;
+import user.User.AccountInformation;
 
 public class AccountMapper {
     public static AccountDto toDto(Account account) {
@@ -30,6 +32,20 @@ public class AccountMapper {
         dto.setLicenseId(account.getLicenseId());
         dto.setStatus(account.getStatus());
         return dto;
+    }
+
+    public static AccountInformation toAccountInformationGrpc(Account account) {
+        if (account == null) {
+            return null;
+        }
+        return AccountInformation.newBuilder()
+                .setAccountId(account.getId().toString())
+                .setEmail(account.getEmail())
+                .setFullName(account.getFullName())
+                .setPhone(account.getPhone())
+                .setImage(account.getImage())
+                .setGender(AccountEnum.fromCode(account.getGender()))
+                .build();
     }
 
     public static Account toEntity(AccountDto dto) {

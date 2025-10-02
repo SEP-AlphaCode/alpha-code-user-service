@@ -44,24 +44,14 @@ public class UserService extends UserServiceGrpc.UserServiceImplBase {
                 return;
             }
 
-            // Build response
-            AccountInformation accountInformation = AccountInformation.newBuilder()
-                    .setAccountId(account.getId().toString())
-                    .setEmail(account.getEmail())
-                    .setFullName(account.getFullName())
-                    .setPhone(account.getPhone())
-                    .setImage(account.getImage())
-                    .setGender(AccountEnum.fromCode(account.getGender()))
-                    .build();
-
             // Log chi tiết trước khi gửi
             log.info("Sending AccountInformation response for accountId={}, email={}, fullName={}",
-                    accountInformation.getAccountId(),
-                    accountInformation.getEmail(),
-                    accountInformation.getFullName());
+                    account.getAccountId(),
+                    account.getEmail(),
+                    account.getFullName());
 
             // Gửi dữ liệu cho client
-            responseObserver.onNext(accountInformation);
+            responseObserver.onNext(account);
             responseObserver.onCompleted();
 
         } catch (IllegalArgumentException e) {
