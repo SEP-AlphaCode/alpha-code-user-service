@@ -29,4 +29,6 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     long countByRoleIdAndCreatedDateBetween(UUID roleId, LocalDateTime start, LocalDateTime end);
 
     long countByCreatedDateBetween(LocalDateTime start, LocalDateTime end);
+
+    Optional<Account> findAccountByIdGrpc(UUID id);
 }

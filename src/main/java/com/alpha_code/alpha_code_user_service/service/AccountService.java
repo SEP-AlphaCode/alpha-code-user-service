@@ -2,6 +2,7 @@ package com.alpha_code.alpha_code_user_service.service;
 
 import com.alpha_code.alpha_code_user_service.dto.AccountDto;
 import com.alpha_code.alpha_code_user_service.dto.PagedResult;
+import com.alpha_code.alpha_code_user_service.entity.Account;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
@@ -28,4 +29,6 @@ public interface AccountService {
     String delete(UUID id);
 
     AccountDto findAccountByFullName(String fullName);
+
+    Account findAccountByIdGrpc(UUID id);
 }

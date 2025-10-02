@@ -35,7 +35,7 @@ public class UserService extends UserServiceGrpc.UserServiceImplBase {
             UUID accountId = UUID.fromString(requestId);
 
             // Lấy dữ liệu account từ DB/service
-            var account = accountService.getById(accountId);
+            var account = accountService.findAccountByIdGrpc(accountId);
             if (account == null) {
                 log.warn("Account not found for accountId={}", requestId);
                 responseObserver.onError(Status.NOT_FOUND

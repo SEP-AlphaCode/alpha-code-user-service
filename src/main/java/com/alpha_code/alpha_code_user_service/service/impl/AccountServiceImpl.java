@@ -40,6 +40,13 @@ public class AccountServiceImpl implements AccountService {
 
     private static final String DEFAULT_ROLE = "USER";
 
+    @Override
+    @Cacheable(value = "grpc_account", key = "{#id}")
+    public Account findAccountByIdGrpc(UUID id) {
+        return repository.findAccountByIdGrpc(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản"));
+    }
+
 
     @Override
     @Cacheable(value = "accounts_list", key = "{#page, #size, #status}")
@@ -118,7 +125,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     @Transactional
     @CachePut(value = "accounts", key = "#id")
-    @CacheEvict(value = {"accounts_list"}, allEntries = true)
+    @CacheEvict(value = {"accounts_list", "grpc_account"}, allEntries = true)
     public AccountDto update(UUID id, AccountDto accountDto) {
         Account existingAccount = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Tài khoản"));
@@ -141,7 +148,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     @Transactional
     @CachePut(value = "accounts", key = "#id")
-    @CacheEvict(value = {"accounts_list"}, allEntries = true)
+    @CacheEvict(value = {"accounts_list", "grpc_account"}, allEntries = true)
     public AccountDto updateProfile(UUID id, AccountDto accountDto, MultipartFile avatarFile) {
         Account existingAccount = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Tài khoản"));
@@ -174,7 +181,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     @Transactional
     @CachePut(value = "accounts", key = "#id")
-    @CacheEvict(value = {"accounts_list"}, allEntries = true)
+    @CacheEvict(value = {"accounts_list", "grpc_account"}, allEntries = true)
     public AccountDto patchUpdate(UUID id, AccountDto accountDto) {
         Account existingAccount = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Tài khoản"));
@@ -210,7 +217,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     @Transactional
     @CachePut(value = "accounts", key = "#id")
-    @CacheEvict(value = {"accounts_list"}, allEntries = true)
+    @CacheEvict(value = {"accounts_list", "grpc_account"}, allEntries = true)
     public AccountDto patchUpdateProfile(UUID id, AccountDto accountDto, MultipartFile avatarFile) {
         Account existingAccount = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Tài khoản"));
@@ -265,7 +272,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     @Transactional
     @CachePut(value = "accounts", key = "#id")
-    @CacheEvict(value = {"accounts_list"}, allEntries = true)
+    @CacheEvict(value = {"accounts_list", "grpc_account"}, allEntries = true)
     public AccountDto changePassword(UUID id, String oldPassword, String newPassword) {
         Account existingAccount = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Tài khoản"));
@@ -283,7 +290,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     @Transactional
     @CachePut(value = "accounts", key = "#id")
-    @CacheEvict(value = {"accounts_list"}, allEntries = true)
+    @CacheEvict(value = {"accounts_list", "grpc_account"}, allEntries = true)
     public AccountDto changeStatus(UUID id, Integer status) {
         Account existingAccount = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Tài khoản"));
@@ -296,7 +303,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"accounts", "accounts_list"}, allEntries = true)
+    @CacheEvict(value = {"accounts", "accounts_list", "grpc_account"}, allEntries = true)
     public String delete(UUID id) {
         try {
             Account account = repository.findById(id)
