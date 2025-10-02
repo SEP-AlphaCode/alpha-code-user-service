@@ -1,6 +1,5 @@
 package com.alpha_code.alpha_code_user_service.grpc.server;
 
-import com.alpha_code.alpha_code_user_service.enums.AccountEnum;
 import com.alpha_code.alpha_code_user_service.service.AccountService;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
@@ -10,14 +9,13 @@ import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.service.GrpcService;
 import user.User;
 import user.UserServiceGrpc;
-import user.User.AccountInformation;
 
 import java.util.UUID;
 
 @GrpcService
 @RequiredArgsConstructor
 @Slf4j
-public class UserService extends UserServiceGrpc.UserServiceImplBase {
+public class UserServiceServer extends UserServiceGrpc.UserServiceImplBase {
     private final AccountService accountService;
 
     @PostConstruct
