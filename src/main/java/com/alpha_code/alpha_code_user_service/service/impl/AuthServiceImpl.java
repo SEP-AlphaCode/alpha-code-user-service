@@ -60,9 +60,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public LoginDto.LoginResponse login(LoginDto.LoginRequest loginRequest) {
-        Optional<Account> accountOptional = repository.findAccountByUsername(loginRequest.getUsername().trim());
+        Optional<Account> accountOptional = repository.findAccountByUsername(loginRequest.getUsername());
         if (accountOptional.isEmpty()) {
-            accountOptional = repository.findByEmail(loginRequest.getUsername().trim());
+            accountOptional = repository.findByEmail(loginRequest.getUsername());
         }
 
         // If no account is found, throw AuthenticationException
@@ -102,7 +102,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AccountDto register(LoginDto.RegisterRequest registerRequest) {
-        if (repository.existsByUsername(registerRequest.getUsername().trim())) {
+        if (repository.existsByUsername(registerRequest.getUsername())) {
             throw new ConflictException("Tên đăng nhập đã được sử dụng");
         }
         if (repository.existsByEmail(registerRequest.getEmail())) {
@@ -113,20 +113,20 @@ public class AuthServiceImpl implements AuthService {
         }
 
         Account entity = new Account();
-        entity.setUsername(registerRequest.getUsername().trim());
+        entity.setUsername(registerRequest.getUsername());
         entity.setPassword(passwordEncoder.encode(registerRequest.getPassword().trim()));
         entity.setFullName(registerRequest.getFullName());
         entity.setEmail(registerRequest.getEmail());
         entity.setPhone(registerRequest.getPhone());
         entity.setGender(registerRequest.getGender());
         entity.setStatus(1);
-        var roleUser = roleRepository.findByNameIgnoreCase("USER");
+        var roleUser = roleRepository.findByNameIgnoreCase("User");
         if (roleUser.isEmpty()) {
             Role newRole = new Role();
-            newRole.setName("USER");
+            newRole.setName("User");
             newRole.setStatus(1);
             roleRepository.save(newRole);
-            roleUser = roleRepository.findByNameIgnoreCase("USER");
+            roleUser = roleRepository.findByNameIgnoreCase("User");
         }
 
         if (registerRequest.getAvatarFile() != null && !registerRequest.getAvatarFile().isEmpty()) {
@@ -187,13 +187,13 @@ public class AuthServiceImpl implements AuthService {
                 entity.setImage(firebaseToken.getPicture());
                 entity.setCreatedDate(LocalDateTime.now());
                 entity.setStatus(1);
-                var roleUser = roleRepository.findByNameIgnoreCase("USER");
+                var roleUser = roleRepository.findByNameIgnoreCase("User");
                 if (roleUser.isEmpty()) {
                     Role newRole = new Role();
-                    newRole.setName("USER");
+                    newRole.setName("User");
                     newRole.setStatus(1);
                     roleRepository.save(newRole);
-                    roleUser = roleRepository.findByNameIgnoreCase("USER");
+                    roleUser = roleRepository.findByNameIgnoreCase("User");
                 }
                 entity.setRoleId(roleUser.get().getId());
                 entity.setRole(roleUser.get());
