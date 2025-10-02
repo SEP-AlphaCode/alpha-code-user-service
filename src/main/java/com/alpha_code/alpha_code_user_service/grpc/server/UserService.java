@@ -4,6 +4,7 @@ import com.alpha_code.alpha_code_user_service.enums.AccountEnum;
 import com.alpha_code.alpha_code_user_service.service.AccountService;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
+import org.springframework.grpc.server.service.GrpcService;
 import org.springframework.stereotype.Service;
 import user.User;
 import user.UserServiceGrpc;
@@ -11,7 +12,7 @@ import user.User.AccountInformation;
 
 import java.util.UUID;
 
-@Service
+@GrpcService
 @RequiredArgsConstructor
 public class UserService extends UserServiceGrpc.UserServiceImplBase {
     private final AccountService accountService;
