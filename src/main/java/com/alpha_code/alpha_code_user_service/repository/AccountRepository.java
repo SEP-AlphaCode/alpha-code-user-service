@@ -4,6 +4,8 @@ import com.alpha_code.alpha_code_user_service.entity.Account;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -30,5 +32,6 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
 
     long countByCreatedDateBetween(LocalDateTime start, LocalDateTime end);
 
-    Optional<Account> findAccountByIdGrpc(UUID id);
+    @Query("SELECT a FROM Account a WHERE a.id = :id")
+    Optional<Account> findAccountByIdGrpc(@Param("id") UUID id);
 }
