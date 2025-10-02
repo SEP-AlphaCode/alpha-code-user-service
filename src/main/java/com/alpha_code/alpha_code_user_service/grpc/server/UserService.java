@@ -41,6 +41,7 @@ public class UserService extends UserServiceGrpc.UserServiceImplBase {
                     .build();
 
             // gửi response
+            log.info("Sending AccountInformation response for accountId: {}", accountInformation);
             responseObserver.onNext(accountInformation);
             responseObserver.onCompleted();
         } catch (Exception e) {
