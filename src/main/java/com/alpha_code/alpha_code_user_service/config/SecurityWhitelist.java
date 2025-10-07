@@ -13,7 +13,7 @@ public class SecurityWhitelist {
             "/swagger",
             "/docs",
             "/",
-            "/api/v1/auth/**",
+            "/api/v1/auth/**"
     };
 
     // Permit GET only

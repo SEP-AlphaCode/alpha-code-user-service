@@ -57,7 +57,7 @@ public class JwtUtil {
     public String generateRefreshToken(Account account) {
         return Jwts.builder()
                 .claims(Map.of(
-                        "id", account.getId(),
+                        "id", account.getId().toString(),
                         "username", account.getUsername(),
                         "email", account.getEmail()
                 ))

@@ -220,7 +220,7 @@ public class AuthServiceImpl implements AuthService {
                     .build();
 
         } catch (Exception e) {
-            throw new AuthenticationException("Google login failed: " + e.getMessage());
+            throw new AuthenticationException("Đăng nhập google thất bại: " + e.getMessage());
         }
     }
 
@@ -228,7 +228,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public boolean requestResetPassword(String email) throws MessagingException {
         var account = repository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Email not found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy email trong hệ thống"));
 
         System.out.println("Account get = " + account.getId());
 
@@ -260,11 +260,11 @@ public class AuthServiceImpl implements AuthService {
         String email = jwtUtil.extractEmail(dto.getResetToken());
 
         Account account = repository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Invalid reset token"));
+                .orElseThrow(() -> new ResourceNotFoundException("Token không hợp lệ hoặc đã hết hạn"));
 
         // 2. Check token is valid or not
         if (!jwtUtil.validateJwtToken(dto.getResetToken())) {
-            throw new IllegalArgumentException("Reset token is invalid or expired");
+            throw new IllegalArgumentException("Token không hợp lệ hoặc đã hết hạn");
         }
 
         // 3. Hash new password
