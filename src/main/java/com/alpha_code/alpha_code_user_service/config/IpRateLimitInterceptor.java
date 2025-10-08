@@ -21,7 +21,7 @@ public class IpRateLimitInterceptor implements HandlerInterceptor {
 
 
     // config
-    private static final int MAX_REQUESTS = 20;      // tối đa 20 request
+    private static final int MAX_REQUESTS = 100;      // tối đa 20 request
     private static final int WINDOW_SECONDS = 60;    // trong 60 giây
 
     @Override
