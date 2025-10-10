@@ -68,10 +68,14 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
         // cấp lại access token mới, refresh token giữ nguyên
         String newAccessToken = jwtUtil.generateAccessToken(account);
+        String newFreshToken = jwtUtil.generateRefreshToken(account);
+
+        redisService.delete(userId);
+        redisService.save(userId, newFreshToken, refreshTokenDurationMs, TimeUnit.MILLISECONDS);
 
         return LoginDto.LoginResponse.builder()
                 .accessToken(newAccessToken)
-                .refreshToken(refreshToken)
+                .refreshToken(newFreshToken)
                 .build();
     }
 
