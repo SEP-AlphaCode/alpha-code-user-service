@@ -18,9 +18,9 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addRedirectViewController("/docs", "/swagger");
     }
 
-//    @Override
-//    public void addInterceptors(InterceptorRegistry registry) {
-//        registry.addInterceptor(ipRateLimitInterceptor)
-//                .addPathPatterns("/api/**");
-//    }
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(ipRateLimitInterceptor)
+                .addPathPatterns("/api/**");
+    }
 }
