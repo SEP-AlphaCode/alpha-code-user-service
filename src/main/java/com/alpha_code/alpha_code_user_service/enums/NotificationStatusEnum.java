@@ -5,16 +5,17 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum NotificationEnum {
+public enum NotificationStatusEnum {
     DELETED(0, "ĐÃ BỊ XÓA"),
     ACTIVE(1, "HOẠT ĐỘNG");
 
+    //Type enum
     private final int code;
     private final String description;
 
     public static String fromCode(Integer code) {
         if (code == null) return null;
-        for (NotificationEnum s : values()) {
+        for (NotificationStatusEnum s : values()) {
             if (s.code == code) {
                 return s.description;
             }

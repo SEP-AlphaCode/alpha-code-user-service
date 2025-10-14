@@ -3,10 +3,15 @@ package com.alpha_code.alpha_code_user_service.service.impl;
 import com.alpha_code.alpha_code_user_service.dto.NotificationDto;
 import com.alpha_code.alpha_code_user_service.dto.PagedResult;
 import com.alpha_code.alpha_code_user_service.entity.Notification;
+import com.alpha_code.alpha_code_user_service.enums.NotificationTypeEnum;
 import com.alpha_code.alpha_code_user_service.exception.ResourceNotFoundException;
 import com.alpha_code.alpha_code_user_service.mapper.NotificationMapper;
+import com.alpha_code.alpha_code_user_service.publisher.NotificationPublisher;
+import com.alpha_code.alpha_code_user_service.repository.AccountRepository;
 import com.alpha_code.alpha_code_user_service.repository.NotificationRepository;
+import com.alpha_code.alpha_code_user_service.service.MailService;
 import com.alpha_code.alpha_code_user_service.service.NotificationService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -22,9 +27,13 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository repository;
+    private final NotificationPublisher notificationPublisher;
+    private final AccountRepository accountRepository;
+    private final MailService mailService;
 
     @Override
     @Cacheable(value = "notifications_list", key = "{#page, #size, #accountId, #status}")
@@ -60,7 +69,33 @@ public class NotificationServiceImpl implements NotificationService {
         entity.setCreatedDate(LocalDateTime.now());
 
         Notification savedEntity = repository.save(entity);
-        return NotificationMapper.toDto(savedEntity);
+        NotificationDto result = NotificationMapper.toDto(savedEntity);
+
+        // Bắn socket realtime tới client
+        notificationPublisher.sendToUser(result.getAccountId(), notificationDto);
+
+        try {
+            // Lấy enum từ type code
+            NotificationTypeEnum type = NotificationTypeEnum.fromCodeValue(result.getType());
+
+            if (type == NotificationTypeEnum.PAYMENT_SUCCESS) {
+                var account = accountRepository.findById(result.getAccountId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản để gửi email"));
+
+                mailService.sendPaymentSuccessEmail(
+                        account.getEmail(),
+                        account.getFullName(),
+                        notificationDto.getServiceName(),  // Tên gói dịch vụ
+                        notificationDto.getOrderCode(),    // Mã đơn hàng
+                        notificationDto.getPrice()         // Giá
+                );
+            }
+
+        } catch (Exception e) {
+            log.error("Lỗi khi gửi email thông báo thanh toán: ", e);
+        }
+
+        return result;
     }
 
     @Override

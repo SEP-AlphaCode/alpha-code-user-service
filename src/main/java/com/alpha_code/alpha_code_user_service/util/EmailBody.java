@@ -53,4 +53,29 @@ public class EmailBody {
                 .replace("{fullName}", fullName)
                 .replace("{resetLink}", resetLink);
     }
+
+    public static String getPaymentSuccessEmailBody(String fullName, String serviceName, Long orderCode, Integer price) {
+        return String.format("""
+                <html>
+                <body style="font-family: Arial, sans-serif; color: #333;">
+                    <div style="max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
+                        <div style="text-align: center;">
+                            <img src="cid:alphacode-logo" alt="AlphaCode Logo" style="width: 120px;"/>
+                            <h2 style="color: #2a7ae2;">Cảm ơn %s đã thanh toán thành công!</h2>
+                        </div>
+                        <p>Xin chào <b>%s</b>,</p>
+                        <p>Bạn vừa mua gói dịch vụ <b>%s</b> với thông tin như sau:</p>
+                        <ul>
+                            <li><b>Mã đơn hàng:</b> #%d</li>
+                            <li><b>Giá trị:</b> %,d VND</li>
+                        </ul>
+                        <p>Cảm ơn bạn đã tin tưởng sử dụng dịch vụ của <b>AlphaCode</b></p>
+                        <p>Nếu có bất kỳ thắc mắc nào, vui lòng liên hệ với chúng tôi qua email: <a href="mailto:alphacodeedu@gmail.com">alphacodeedu@gmail.com</a>.</p>
+                        <br>
+                        <p style="font-size: 12px; color: #777;">Trân trọng,<br>Đội ngũ AlphaCode</p>
+                    </div>
+                </body>
+                </html>
+                """, fullName, fullName, serviceName, orderCode, price);
+    }
 }
