@@ -1,6 +1,7 @@
 package com.alpha_code.alpha_code_user_service;
 
 import io.github.cdimascio.dotenv.Dotenv;
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -13,6 +14,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 @SpringBootApplication
 @EnableCaching
+@EnableRabbit
 public class AlphaCodeUserServiceApplication {
 
     @Autowired
