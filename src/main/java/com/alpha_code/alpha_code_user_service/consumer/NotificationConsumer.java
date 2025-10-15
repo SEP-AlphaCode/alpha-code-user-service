@@ -26,7 +26,8 @@ public class NotificationConsumer {
     public void handleCreateNotification(Map<String, Object> message) {
         log.info("Received message from notification.create.queue: {}", message);
         Long orderCode = ((Number) message.get("orderCode")).longValue();
-        UUID accountId = (UUID) message.get("accountId");
+        String accountIdStr = (String) message.get("accountId");
+        UUID accountId = UUID.fromString(accountIdStr);
         String serviceName = (String) message.get("serviceName");
         Integer price = (Integer) message.get("price");
 
