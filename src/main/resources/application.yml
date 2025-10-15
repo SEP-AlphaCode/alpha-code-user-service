@@ -41,6 +41,12 @@ spring:
     username: ${SPRING_RABBITMQ_USERNAME:guest}
     password: ${SPRING_RABBITMQ_PASSWORD:guest}
 
+    listener:
+      simple:
+        concurrency: 2          # số thread consumer
+        max-concurrency: 5
+        acknowledge-mode: auto
+
 #  eureka:
 #    client:
 #      service-url:
