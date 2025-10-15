@@ -32,10 +32,9 @@ public class Notification {
     @Column(name = "account_id", nullable = false)
     private UUID accountId;
 
-    @Size(max = 255)
     @NotNull
     @Column(name = "type", nullable = false)
-    private String type;
+    private Integer type;
 
     @Size(max = 255)
     @NotNull
