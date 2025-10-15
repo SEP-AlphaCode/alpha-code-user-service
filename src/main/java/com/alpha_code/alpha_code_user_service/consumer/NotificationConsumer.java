@@ -20,7 +20,7 @@ public class NotificationConsumer {
     private final NotificationService notificationService;
 
     @RabbitListener(
-            queues = "notification.create.queue",
+            queues = "notification.send.queue",
             containerFactory = "rabbitListenerContainerFactory"
     )
     public void handleCreateNotification(Map<String, Object> message) {
