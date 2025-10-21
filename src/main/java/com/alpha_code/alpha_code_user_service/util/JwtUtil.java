@@ -1,6 +1,7 @@
 package com.alpha_code.alpha_code_user_service.util;
 
 import com.alpha_code.alpha_code_user_service.entity.Account;
+import com.alpha_code.alpha_code_user_service.service.RoleService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -18,6 +19,7 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
+    private final RoleService roleService;
     @Value("${jwt.secret}")
     private String jwtSecret;
 
@@ -30,11 +32,16 @@ public class JwtUtil {
     @Value("${jwt.reset-password-expiration-ms}")
     private int resetPasswordTokenExpirationMs;
 
+    public JwtUtil(RoleService roleService) {
+        this.roleService = roleService;
+    }
+
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateAccessToken(Account account) {
+        var role = roleService.getById(account.getRoleId());
         return Jwts.builder()
                 .claims(Map.of(
                         "id", account.getId(),
@@ -42,7 +49,7 @@ public class JwtUtil {
                         "username", account.getUsername(),
                         "email", account.getEmail(),
                         "roleId", account.getRoleId(),
-                        "roleName", account.getRole().getName()
+                        "roleName", role.getName()
                 ))
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
