@@ -1,7 +1,9 @@
 package com.alpha_code.alpha_code_user_service.controller;
 
+import com.alpha_code.alpha_code_user_service.dto.LoginDto;
 import com.alpha_code.alpha_code_user_service.dto.PagedResult;
 import com.alpha_code.alpha_code_user_service.dto.ProfileDto;
+import com.alpha_code.alpha_code_user_service.dto.request.SwitchProfileRequest;
 import com.alpha_code.alpha_code_user_service.service.ProfileService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -35,11 +38,28 @@ public class ProfileController {
         return profileService.getProfileById(id);
     }
 
+    @GetMapping("/by-account/{accountId}")
+    public List<ProfileDto> getByAccountId(@PathVariable UUID accountId) {
+        return profileService.getByAccountId(accountId);
+    }
+
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ProfileDto createProfile(@ModelAttribute ProfileDto profileDto) {
         return profileService.createProfile(profileDto);
     }
 
+    @PutMapping("/{id}")
+    public ProfileDto updateProfile(@PathVariable UUID id, @RequestBody ProfileDto profileDto) {
+        return profileService.updateProfile(id, profileDto);
+    }
 
+    @PutMapping(value = "/{id}/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ProfileDto updateAvatar(@PathVariable UUID id, @RequestPart MultipartFile avatar) {
+        return profileService.updateAvatar(id, avatar);
+    }
 
+    @DeleteMapping("/{id}")
+    public void deleteProfile(@PathVariable UUID id) {
+        profileService.deleteProfile(id);
+    }
 }

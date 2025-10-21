@@ -4,6 +4,7 @@ import com.alpha_code.alpha_code_user_service.dto.AccountDto;
 import com.alpha_code.alpha_code_user_service.dto.LoginDto;
 import com.alpha_code.alpha_code_user_service.dto.ResetPassworDto;
 import com.alpha_code.alpha_code_user_service.dto.ResetPasswordRequestDto;
+import com.alpha_code.alpha_code_user_service.dto.request.SwitchProfileRequest;
 import com.alpha_code.alpha_code_user_service.service.AuthService;
 import com.alpha_code.alpha_code_user_service.service.RefreshTokenService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -69,5 +70,11 @@ public class AuthController {
     @Operation(summary = "Logout and invalidate the refresh token")
     public String logout(@RequestBody String refreshToken) {
         return refreshTokenService.logout(refreshToken);
+    }
+
+    @PostMapping("/switch")
+    @Operation(summary = "Switch profile for user account")
+    public LoginDto.LoginResponse switchProfile(@RequestBody SwitchProfileRequest request) {
+        return service.switchProfile(request);
     }
 }

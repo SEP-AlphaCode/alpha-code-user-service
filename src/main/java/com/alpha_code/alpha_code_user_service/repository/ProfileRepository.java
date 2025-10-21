@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -30,4 +31,10 @@ public interface ProfileRepository extends JpaRepository<Profile, UUID> {
             @Param("passCode") Integer passCode,
             Pageable pageable
     );
+
+    List<Profile> findListByAccountIdAndStatus(UUID accountId, Integer status);
+
+    Optional<Profile> findByIdAndAccountId(UUID id, UUID accountId);
+
+    List<Profile> findByAccountId(UUID accountId);
 }

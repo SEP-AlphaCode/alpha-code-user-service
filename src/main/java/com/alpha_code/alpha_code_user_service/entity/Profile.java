@@ -33,6 +33,12 @@ public class Profile {
     @Column(name = "account_id", nullable = false, columnDefinition = "uuid")
     private UUID accountId;
 
+    @Column(name = "role_id", nullable = false, columnDefinition = "uuid")
+    private UUID roleId; // PARENT hoặc CHILD hoặc future roles...
+
+    @Column(name = "parent_profile_id", columnDefinition = "uuid")
+    private UUID parentProfileId;
+
     @Column(name = "avatar_url")
     private String avatarUrl;
 

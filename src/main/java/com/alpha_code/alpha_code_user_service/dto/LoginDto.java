@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class LoginDto implements Serializable {
 
@@ -25,6 +26,8 @@ public class LoginDto implements Serializable {
     @AllArgsConstructor
     @Builder
     public static class LoginResponse {
+        private Boolean requiresProfile;
+        private List<ProfileDto> profiles;
         private String accessToken;
         private String refreshToken;
     }

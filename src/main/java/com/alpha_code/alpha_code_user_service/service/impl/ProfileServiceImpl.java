@@ -1,15 +1,21 @@
 package com.alpha_code.alpha_code_user_service.service.impl;
 
+import com.alpha_code.alpha_code_user_service.dto.LoginDto;
 import com.alpha_code.alpha_code_user_service.dto.PagedResult;
 import com.alpha_code.alpha_code_user_service.dto.ProfileDto;
+import com.alpha_code.alpha_code_user_service.dto.request.SwitchProfileRequest;
 import com.alpha_code.alpha_code_user_service.entity.Account;
 import com.alpha_code.alpha_code_user_service.entity.Profile;
-import com.alpha_code.alpha_code_user_service.mapper.AccountMapper;
+import com.alpha_code.alpha_code_user_service.entity.Role;
+import com.alpha_code.alpha_code_user_service.exception.ResourceNotFoundException;
 import com.alpha_code.alpha_code_user_service.mapper.ProfileMapper;
 import com.alpha_code.alpha_code_user_service.repository.AccountRepository;
 import com.alpha_code.alpha_code_user_service.repository.ProfileRepository;
+import com.alpha_code.alpha_code_user_service.repository.RoleRepository;
 import com.alpha_code.alpha_code_user_service.service.ProfileService;
 import com.alpha_code.alpha_code_user_service.service.S3Service;
+import com.alpha_code.alpha_code_user_service.util.JwtUtil;
+import com.google.api.gax.rpc.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -23,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -32,7 +39,6 @@ public class ProfileServiceImpl implements ProfileService {
     private final ProfileRepository profileRepository;
     private final AccountRepository accountRepository;
     private final S3Service s3Service;
-    private final BCryptPasswordEncoder passwordEncoder;
 
     @Override
     @Cacheable(value = "profiles_list", key = "{#page, #size, #name, #accountId, #status, #isKid, #passCode}")
@@ -56,7 +62,29 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"profiles_list, profile"}, allEntries = true)
+    @CachePut(value = "profile", key = "#id")
+    @CacheEvict(value = {"profiles_list, profile, profiles_by_account"}, allEntries = true)
+    public ProfileDto updateAvatar(UUID id, MultipartFile avatar) {
+        var profile = profileRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Profile not found"));
+
+        try {
+            if (avatar != null && !avatar.isEmpty()) {
+                String fileKey = "avatars/" + System.currentTimeMillis() + "_" + avatar.getOriginalFilename();
+                String avatarUrl = s3Service.uploadBytes(avatar.getBytes(), fileKey, avatar.getContentType());
+                profile.setAvatarUrl(avatarUrl);
+            }
+
+            Profile savedEntity = profileRepository.save(profile);
+            return ProfileMapper.toDto(savedEntity);
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi tải Ảnh đại diện", e);
+        }
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = {"profiles_list, profile, profiles_by_account"}, allEntries = true)
     public ProfileDto createProfile(ProfileDto profileDto) {
         var profile = ProfileMapper.toEntity(profileDto);
         var account = accountRepository.findById(profileDto.getAccountId())
@@ -81,10 +109,10 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional
-    @CachePut(value = "profile", key = "#profileDto.id")
-    @CacheEvict(value = "profiles_list", allEntries = true)
-    public ProfileDto updateProfile(ProfileDto profileDto) {
-        var profile = profileRepository.findById(profileDto.getId())
+    @CachePut(value = "profile", key = "#id")
+    @CacheEvict(value = {"profiles_list, profile, profiles_by_account"}, allEntries = true)
+    public ProfileDto updateProfile(UUID id, ProfileDto profileDto) {
+        var profile = profileRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Profile not found"));
 
         profile.setName(profileDto.getName());
@@ -103,7 +131,7 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     @Transactional
     @CachePut(value = "profile", key = "#profileDto.id")
-    @CacheEvict(value = "profiles_list", allEntries = true)
+    @CacheEvict(value = {"profiles_list, profile, profiles_by_account"}, allEntries = true)
     public ProfileDto patchUpdateProfile(ProfileDto profileDto) {
         var profile = profileRepository.findById(profileDto.getId())
                 .orElseThrow(() -> new RuntimeException("Profile not found"));
@@ -136,7 +164,7 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     @Transactional
     @CachePut(value = "profile", key = "#profileDto.id")
-    @CacheEvict(value = "profiles_list", allEntries = true)
+    @CacheEvict(value = {"profiles_list, profile, profiles_by_account"}, allEntries = true)
     public ProfileDto updateProfileWithImage(ProfileDto profileDto, MultipartFile profileImage) {
         var profile = profileRepository.findById(profileDto.getId())
                 .orElseThrow(() -> new RuntimeException("Profile not found"));
@@ -167,7 +195,7 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     @Transactional
     @CachePut(value = "profile", key = "#profileDto.id")
-    @CacheEvict(value = "profiles_list", allEntries = true)
+    @CacheEvict(value = {"profiles_list, profile, profiles_by_account"}, allEntries = true)
     public ProfileDto patchUpdateProfileWithImage(ProfileDto profileDto, MultipartFile profileImage) {
         var profile = profileRepository.findById(profileDto.getId())
                 .orElseThrow(() -> new RuntimeException("Profile not found"));
@@ -210,8 +238,8 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     @Transactional
     @CachePut(value = "profile", key = "#profileDto.id")
-    @CacheEvict(value = "profiles_list", allEntries = true)
-    public String deleteProfile(UUID id) {
+    @CacheEvict(value = {"profiles_list, profile, profiles_by_account"}, allEntries = true)
+    public void deleteProfile(UUID id) {
         var profile = profileRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Profile not found"));
 
@@ -219,13 +247,12 @@ public class ProfileServiceImpl implements ProfileService {
         profile.setLastUpdated(LocalDateTime.now());
 
         profileRepository.save(profile);
-        return "Xóa thành công Profile với id: " + id;
     }
 
     @Override
     @Transactional
     @CachePut(value = "profile", key = "#profileDto.id")
-    @CacheEvict(value = "profiles_list", allEntries = true)
+    @CacheEvict(value = {"profiles_list, profile, profiles_by_account"}, allEntries = true)
     public ProfileDto updateProfileStatus(UUID id, Integer status) {
         var profile = profileRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Profile not found"));
@@ -240,7 +267,7 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     @Transactional
     @CachePut(value = "profile", key = "#profileDto.id")
-    @CacheEvict(value = "profiles_list", allEntries = true)
+    @CacheEvict(value = {"profiles_list, profile, profiles_by_account"}, allEntries = true)
     public ProfileDto updateProfilePassCode(UUID id, Integer oldPassCode, Integer passCode) {
         var profile = profileRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Profile not found"));
@@ -254,5 +281,14 @@ public class ProfileServiceImpl implements ProfileService {
 
         Profile savedEntity = profileRepository.save(profile);
         return  ProfileMapper.toDto(savedEntity);
+    }
+
+    @Override
+    @Cacheable(value = "profiles_by_account", key = "#accountId")
+    public List<ProfileDto> getByAccountId(UUID accountId) {
+        var profiles = profileRepository.findListByAccountIdAndStatus(accountId, 1);
+        return profiles.stream()
+                .map(ProfileMapper::toDto)
+                .toList();
     }
 }

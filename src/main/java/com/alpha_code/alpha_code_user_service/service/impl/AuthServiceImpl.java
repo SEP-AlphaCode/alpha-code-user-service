@@ -2,14 +2,19 @@ package com.alpha_code.alpha_code_user_service.service.impl;
 
 import com.alpha_code.alpha_code_user_service.dto.AccountDto;
 import com.alpha_code.alpha_code_user_service.dto.LoginDto;
+import com.alpha_code.alpha_code_user_service.dto.ProfileDto;
 import com.alpha_code.alpha_code_user_service.dto.ResetPassworDto;
+import com.alpha_code.alpha_code_user_service.dto.request.SwitchProfileRequest;
 import com.alpha_code.alpha_code_user_service.entity.Account;
+import com.alpha_code.alpha_code_user_service.entity.Profile;
 import com.alpha_code.alpha_code_user_service.entity.Role;
 import com.alpha_code.alpha_code_user_service.exception.AuthenticationException;
 import com.alpha_code.alpha_code_user_service.exception.ConflictException;
 import com.alpha_code.alpha_code_user_service.exception.ResourceNotFoundException;
 import com.alpha_code.alpha_code_user_service.mapper.AccountMapper;
+import com.alpha_code.alpha_code_user_service.mapper.ProfileMapper;
 import com.alpha_code.alpha_code_user_service.repository.AccountRepository;
+import com.alpha_code.alpha_code_user_service.repository.ProfileRepository;
 import com.alpha_code.alpha_code_user_service.repository.RoleRepository;
 import com.alpha_code.alpha_code_user_service.service.AuthService;
 import com.alpha_code.alpha_code_user_service.service.DashboardService;
@@ -34,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -56,6 +62,10 @@ public class AuthServiceImpl implements AuthService {
 
     @Value("${jwt.refresh-expiration-ms}")
     private long refreshTokenExpirationMs;
+    @Autowired
+    private ProfileRepository profileRepository;
+    @Autowired
+    private AccountRepository accountRepository;
 
     @Override
     @Transactional
@@ -65,7 +75,6 @@ public class AuthServiceImpl implements AuthService {
             accountOptional = repository.findByEmail(loginRequest.getUsername());
         }
 
-        // If no account is found, throw AuthenticationException
         Account account = accountOptional.orElseThrow(() ->
                 new AuthenticationException("Sai tài khoản hoặc mật khẩu"));
 
@@ -73,32 +82,61 @@ public class AuthServiceImpl implements AuthService {
             throw new AuthenticationException("Sai tài khoản hoặc mật khẩu");
         }
 
+        // Nếu account bị khóa thì không cho login
         if (account.getStatus() == 0) {
+            throw new AuthenticationException("Tài khoản đang bị khóa");
+        }
+
+        // Kiểm tra role của account
+        String accountRoleName = account.getRole().getName(); // Admin/Staff/User
+
+        // Nếu là Admin hoặc Staff → login như bình thường (trả full token)
+        if ("Admin".equalsIgnoreCase(accountRoleName) || "Staff".equalsIgnoreCase(accountRoleName)) {
+            String accessToken = jwtUtil.generateAccessToken(account);
+            String refreshToken = jwtUtil.generateRefreshToken(account);
+
+            redisRefreshTokenService.save(
+                    account.getId(),
+                    refreshToken,
+                    refreshTokenExpirationMs,
+                    TimeUnit.MILLISECONDS
+            );
+
+            dashboardService.addOnlineUser(account.getId());
+
             return LoginDto.LoginResponse.builder()
+                    .requiresProfile(false)
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .profiles(null)
+                    .build();
+        }
+
+        // Nếu là User → kiểm tra profile
+        List<Profile> profiles = profileRepository.findByAccountId(account.getId());
+        if (profiles == null || profiles.isEmpty()) {
+            // User chưa có profile → FE sẽ chuyển tới tạo profile cha
+            return LoginDto.LoginResponse.builder()
+                    .requiresProfile(true)
+                    .profiles(List.of())
                     .accessToken(null)
                     .refreshToken(null)
                     .build();
         }
 
-        // Generate JWT token and return response
-        String accessToken = jwtUtil.generateAccessToken(account);
-        String refreshToken = jwtUtil.generateRefreshToken(account);
-
-        // Lưu refresh token vào Redis
-        redisRefreshTokenService.save(
-                account.getId(),
-                refreshToken,
-                refreshTokenExpirationMs,
-                TimeUnit.MILLISECONDS
-        );
-
-        dashboardService.addOnlineUser(account.getId());
+        // User có profile → yêu cầu FE chọn profile
+        List<ProfileDto> profileDtos = profiles.stream()
+                .map(ProfileMapper::toDto)
+                .toList();
 
         return LoginDto.LoginResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
+                .requiresProfile(true)
+                .profiles(profileDtos)
+                .accessToken(null)
+                .refreshToken(null)
                 .build();
     }
+
 
     @Override
     public AccountDto register(LoginDto.RegisterRequest registerRequest) {
@@ -171,22 +209,23 @@ public class AuthServiceImpl implements AuthService {
 
             String email = firebaseToken.getEmail();
             String name = (String) firebaseToken.getClaims().get("name");
-//            String sub = payload.getSubject();
+            String picture = firebaseToken.getPicture();
 
             Account account = repository.findByEmail(email).orElse(null);
 
-            // If no account is found, create a new account
+            // Nếu không có account -> tạo mới với Role User
             if (account == null) {
-                Account entity = new Account();
-                entity.setUsername(email);
-                entity.setPassword(passwordEncoder.encode(""));
-                entity.setFullName(name);
-                entity.setEmail(email);
-                entity.setPhone("");
-                entity.setGender(0);
-                entity.setImage(firebaseToken.getPicture());
-                entity.setCreatedDate(LocalDateTime.now());
-                entity.setStatus(1);
+                account = new Account();
+                account.setUsername(email);
+                account.setPassword(passwordEncoder.encode("")); // đặt trống
+                account.setFullName(name);
+                account.setEmail(email);
+                account.setPhone("");
+                account.setGender(0);
+                account.setImage(picture);
+                account.setCreatedDate(LocalDateTime.now());
+                account.setStatus(1);
+
                 var roleUser = roleRepository.findByNameIgnoreCase("User");
                 if (roleUser.isEmpty()) {
                     Role newRole = new Role();
@@ -195,34 +234,66 @@ public class AuthServiceImpl implements AuthService {
                     roleRepository.save(newRole);
                     roleUser = roleRepository.findByNameIgnoreCase("User");
                 }
-                entity.setRoleId(roleUser.get().getId());
-                entity.setRole(roleUser.get());
-                Account savedEntity = repository.save(entity);
-                account = savedEntity;
+
+                account.setRoleId(roleUser.get().getId());
+                account.setRole(roleUser.get());
+                account = repository.save(account);
             }
 
-            String accessToken = jwtUtil.generateAccessToken(account);
-            String refreshToken = jwtUtil.generateRefreshToken(account);
+            // Kiểm tra role
+            String accountRoleName = account.getRole().getName();
 
-            // Lưu refresh token vào Redis
-            redisRefreshTokenService.save(
-                    account.getId(),
-                    refreshToken,
-                    refreshTokenExpirationMs,
-                    TimeUnit.MILLISECONDS
-            );
+            // Nếu là Admin hoặc Staff → trả token full
+            if ("Admin".equalsIgnoreCase(accountRoleName) || "Staff".equalsIgnoreCase(accountRoleName)) {
+                String accessToken = jwtUtil.generateAccessToken(account);
+                String refreshToken = jwtUtil.generateRefreshToken(account);
 
-            dashboardService.addOnlineUser(account.getId());
+                redisRefreshTokenService.save(
+                        account.getId(),
+                        refreshToken,
+                        refreshTokenExpirationMs,
+                        TimeUnit.MILLISECONDS
+                );
+
+                dashboardService.addOnlineUser(account.getId());
+
+                return LoginDto.LoginResponse.builder()
+                        .requiresProfile(false)
+                        .accessToken(accessToken)
+                        .refreshToken(refreshToken)
+                        .profiles(null)
+                        .build();
+            }
+
+            // Nếu là User → kiểm tra profile
+            List<Profile> profiles = profileRepository.findByAccountId(account.getId());
+            if (profiles == null || profiles.isEmpty()) {
+                // Chưa có profile → FE sẽ chuyển hướng tới tạo profile cha
+                return LoginDto.LoginResponse.builder()
+                        .requiresProfile(true)
+                        .profiles(List.of())
+                        .accessToken(null)
+                        .refreshToken(null)
+                        .build();
+            }
+
+            // Có profile → yêu cầu chọn profile
+            List<ProfileDto> profileDtos = profiles.stream()
+                    .map(ProfileMapper::toDto)
+                    .toList();
 
             return LoginDto.LoginResponse.builder()
-                    .accessToken(accessToken)
-                    .refreshToken(refreshToken)
+                    .requiresProfile(true)
+                    .profiles(profileDtos)
+                    .accessToken(null)
+                    .refreshToken(null)
                     .build();
 
         } catch (Exception e) {
             throw new AuthenticationException("Đăng nhập google thất bại: " + e.getMessage());
         }
     }
+
 
     @Override
     @Transactional
@@ -273,5 +344,36 @@ public class AuthServiceImpl implements AuthService {
         // 4. Save new password to db
         repository.save(account);
         return true;
+    }
+
+    @Override
+    public LoginDto.LoginResponse switchProfile(SwitchProfileRequest request) {
+        // 1. Tìm profile thuộc account này
+        Profile profile = profileRepository.findByIdAndAccountId(request.getProfileId(), request.getAccountId())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy profile"));
+
+        // 2. Nếu profile là trẻ em và có passcode thì kiểm tra
+        if (profile.getPassCode() != null && !profile.getPassCode().equals(request.getPassCode())) {
+            throw new IllegalArgumentException("PassCode không đúng");
+        }
+
+        // 3. Lấy role của profile
+        Role role = roleRepository.findById(profile.getRoleId())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy role"));
+
+        Account account = accountRepository.findById(profile.getAccountId())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy account"));
+
+        account.setRoleId(role.getId());
+
+        // 4. Sinh token mới (gắn profileId + role vào claim)
+        String accessToken = jwtUtil.generateAccessToken(account);
+        String refreshToken = jwtUtil.generateRefreshToken(account);
+
+        // 5. Trả về access & refresh token
+        return LoginDto.LoginResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
     }
 }
