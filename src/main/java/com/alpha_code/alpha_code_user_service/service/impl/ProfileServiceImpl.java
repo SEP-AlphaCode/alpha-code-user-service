@@ -100,6 +100,8 @@ public class ProfileServiceImpl implements ProfileService {
                 String fileKey = "avatars/" + System.currentTimeMillis() + "_" + profileDto.getAvatarFile().getOriginalFilename();
                 String avatarUrl = s3Service.uploadBytes(profileDto.getAvatarFile().getBytes(), fileKey, profileDto.getAvatarFile().getContentType());
                 profile.setAvatarUrl(avatarUrl);
+            } else {
+                profile.setAvatarUrl("");
             }
 
             Profile savedEntity = profileRepository.save(profile);
