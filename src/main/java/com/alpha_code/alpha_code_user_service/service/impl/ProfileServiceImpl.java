@@ -1,21 +1,15 @@
 package com.alpha_code.alpha_code_user_service.service.impl;
 
-import com.alpha_code.alpha_code_user_service.dto.LoginDto;
 import com.alpha_code.alpha_code_user_service.dto.PagedResult;
 import com.alpha_code.alpha_code_user_service.dto.ProfileDto;
-import com.alpha_code.alpha_code_user_service.dto.request.SwitchProfileRequest;
-import com.alpha_code.alpha_code_user_service.entity.Account;
 import com.alpha_code.alpha_code_user_service.entity.Profile;
 import com.alpha_code.alpha_code_user_service.entity.Role;
-import com.alpha_code.alpha_code_user_service.exception.ResourceNotFoundException;
 import com.alpha_code.alpha_code_user_service.mapper.ProfileMapper;
 import com.alpha_code.alpha_code_user_service.repository.AccountRepository;
 import com.alpha_code.alpha_code_user_service.repository.ProfileRepository;
 import com.alpha_code.alpha_code_user_service.repository.RoleRepository;
 import com.alpha_code.alpha_code_user_service.service.ProfileService;
 import com.alpha_code.alpha_code_user_service.service.S3Service;
-import com.alpha_code.alpha_code_user_service.util.JwtUtil;
-import com.google.api.gax.rpc.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -23,7 +17,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,6 +32,14 @@ public class ProfileServiceImpl implements ProfileService {
     private final ProfileRepository profileRepository;
     private final AccountRepository accountRepository;
     private final S3Service s3Service;
+    private final RoleRepository roleRepository;
+
+    private UUID resolveRoleIdByIsKid(Boolean isKid) {
+        String roleName = Boolean.TRUE.equals(isKid) ? "Children" : "Parent";
+        return roleRepository.findByNameIgnoreCase(roleName)
+                .map(Role::getId)
+                .orElseThrow(() -> new RuntimeException("Role not found: " + roleName));
+    }
 
     @Override
     @Cacheable(value = "profiles_list", key = "{#page, #size, #name, #accountId, #status, #isKid, #passCode}")
@@ -91,7 +92,8 @@ public class ProfileServiceImpl implements ProfileService {
                 .orElseThrow(() -> new RuntimeException("Account not found"));
         profile.setAccount(account);
         profile.setCreatedDate(LocalDateTime.now());
-
+        // set roleId based on isKid
+        profile.setRoleId(resolveRoleIdByIsKid(profile.getIsKid()));
 
         try {
             if (profileDto.getAvatarFile() != null && !profileDto.getAvatarFile().isEmpty()) {
@@ -119,6 +121,8 @@ public class ProfileServiceImpl implements ProfileService {
         profile.setName(profileDto.getName());
         profile.setAccountId(profileDto.getAccountId());
         profile.setIsKid(profileDto.getIsKid());
+        // update roleId after isKid change
+        profile.setRoleId(resolveRoleIdByIsKid(profile.getIsKid()));
         profile.setPassCode(profileDto.getPassCode());
         profile.setLastActiveAt(profileDto.getLastActiveAt());
         profile.setStatus(profileDto.getStatus());
@@ -155,6 +159,8 @@ public class ProfileServiceImpl implements ProfileService {
         if (profileDto.getStatus() != null){
             profile.setStatus(profileDto.getStatus());
         }
+        // ensure roleId aligns with current isKid
+        profile.setRoleId(resolveRoleIdByIsKid(profile.getIsKid()));
 
         profile.setLastUpdated(LocalDateTime.now());
 
@@ -173,6 +179,8 @@ public class ProfileServiceImpl implements ProfileService {
         profile.setName(profileDto.getName());
         profile.setAccountId(profileDto.getAccountId());
         profile.setIsKid(profileDto.getIsKid());
+        // update roleId after isKid change
+        profile.setRoleId(resolveRoleIdByIsKid(profile.getIsKid()));
         profile.setPassCode(profileDto.getPassCode());
         profile.setLastActiveAt(profileDto.getLastActiveAt());
         profile.setStatus(profileDto.getStatus());
@@ -230,6 +238,9 @@ public class ProfileServiceImpl implements ProfileService {
             throw new RuntimeException("Lỗi khi tải Ảnh đại diện", e);
         }
 
+        // ensure roleId aligns with current isKid
+        profile.setRoleId(resolveRoleIdByIsKid(profile.getIsKid()));
+
         profile.setLastUpdated(LocalDateTime.now());
 
         Profile savedEntity = profileRepository.save(profile);
@@ -238,7 +249,7 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional
-    @CachePut(value = "profile", key = "#profileDto.id")
+    @CachePut(value = "profile", key = "#id")
     @CacheEvict(value = {"profiles_list, profile, profiles_by_account"}, allEntries = true)
     public void deleteProfile(UUID id) {
         var profile = profileRepository.findById(id)
@@ -252,7 +263,7 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional
-    @CachePut(value = "profile", key = "#profileDto.id")
+    @CachePut(value = "profile", key = "#id")
     @CacheEvict(value = {"profiles_list, profile, profiles_by_account"}, allEntries = true)
     public ProfileDto updateProfileStatus(UUID id, Integer status) {
         var profile = profileRepository.findById(id)
@@ -267,7 +278,7 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional
-    @CachePut(value = "profile", key = "#profileDto.id")
+    @CachePut(value = "profile", key = "#id")
     @CacheEvict(value = {"profiles_list, profile, profiles_by_account"}, allEntries = true)
     public ProfileDto updateProfilePassCode(UUID id, Integer oldPassCode, Integer passCode) {
         var profile = profileRepository.findById(id)

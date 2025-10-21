@@ -3,7 +3,6 @@ package com.alpha_code.alpha_code_user_service.dto;
 import com.alpha_code.alpha_code_user_service.enums.AccountEnum;
 import com.alpha_code.alpha_code_user_service.validation.OnCreate;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -37,6 +36,9 @@ public class ProfileDto implements Serializable {
     private String avatarUrl;
 
     private Boolean isKid = false;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private UUID roleId;
 
     @NotNull(message = "ParentProfileId không được để trống", groups = OnCreate.class)
     private UUID parentProfileId;
