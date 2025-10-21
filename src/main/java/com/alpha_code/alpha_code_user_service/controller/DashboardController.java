@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,6 +29,7 @@ public class DashboardController {
 
     @GetMapping("/stats/{roleName}")
     @Operation(summary = "Get user stats by role (Teacher, Admin, etc.)")
+    @PreAuthorize("hasAuthority('ROLE_Admin')")
     public ResponseEntity<Map<String, Object>> getStatsByRole(@PathVariable String roleName) {
         Map<String, Object> result = new HashMap<>();
         result.put("role", roleName);

@@ -98,7 +98,7 @@ public class AccountController {
 
     @PutMapping(value = "/{id}/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Update account profile")
-    @PreAuthorize("hasAnyAuthority('ROLE_Admin', 'ROLE_Teacher')")
+    @PreAuthorize("hasAnyAuthority('ROLE_Admin', 'ROLE_Staff')")
     public AccountDto updateProfile(
             @PathVariable UUID id,
 
@@ -141,7 +141,7 @@ public class AccountController {
 
     @PatchMapping(value = "/{id}/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Patch update account profile")
-    @PreAuthorize("hasAnyAuthority('ROLE_Admin', 'ROLE_Teacher')")
+    @PreAuthorize("hasAnyAuthority('ROLE_Admin', 'ROLE_Staff')")
     public AccountDto patchUpdateProfile(
             @PathVariable UUID id,
 
