@@ -17,7 +17,7 @@ public interface ProfileRepository extends JpaRepository<Profile, UUID> {
     @Query("""
         SELECT p 
         FROM Profile p
-        WHERE (:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%')))
+        WHERE (:name IS NULL OR :name = '' OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%')))
           AND (:accountId IS NULL OR p.accountId = :accountId)
           AND (:status IS NULL OR p.status = :status)
           AND (:isKid IS NULL OR p.isKid = :isKid)
