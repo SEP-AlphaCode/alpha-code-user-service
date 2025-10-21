@@ -20,4 +20,8 @@ public class SecurityWhitelist {
     public static final String[] GET_WHITELIST = {
             "/api/v1/**"
     };
+
+    public static final String[] POST_WHITELIST = {
+            "/api/v1/profiles"
+    };
 }

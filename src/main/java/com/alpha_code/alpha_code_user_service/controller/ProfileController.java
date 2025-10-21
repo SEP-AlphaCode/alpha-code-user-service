@@ -8,9 +8,11 @@ import com.alpha_code.alpha_code_user_service.service.ProfileService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.beans.PropertyEditorSupport;
 import java.util.List;
 import java.util.UUID;
 
@@ -61,5 +63,17 @@ public class ProfileController {
     @DeleteMapping("/{id}")
     public void deleteProfile(@PathVariable UUID id) {
         profileService.deleteProfile(id);
+    }
+
+
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        binder.registerCustomEditor(MultipartFile.class, new PropertyEditorSupport() {
+            @Override
+            public void setAsText(String text) {
+                // Khi form không có file, Spring sẽ set text="" → ta chuyển về null
+                setValue(null);
+            }
+        });
     }
 }
