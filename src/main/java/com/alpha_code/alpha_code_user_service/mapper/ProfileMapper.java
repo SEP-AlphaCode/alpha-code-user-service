@@ -16,6 +16,10 @@ public class ProfileMapper {
         if (profile.getAccount() != null) {
             dto.setAccountFullname(profile.getAccount().getFullName());
         }
+        dto.setRoleId(profile.getRoleId());
+        if (profile.getRole() != null){
+            dto.setRoleName(profile.getRole().getName());
+        }
         dto.setAvatarUrl(profile.getAvatarUrl());
         dto.setIsKid(profile.getIsKid());
         dto.setPassCode(profile.getPassCode());
@@ -36,6 +40,7 @@ public class ProfileMapper {
         profile.setId(dto.getId());
         profile.setName(dto.getName());
         profile.setAccountId(dto.getAccountId());
+        profile.setRoleId(dto.getRoleId());
         profile.setAvatarUrl(dto.getAvatarUrl());
         profile.setIsKid(dto.getIsKid());
         profile.setPassCode(dto.getPassCode());

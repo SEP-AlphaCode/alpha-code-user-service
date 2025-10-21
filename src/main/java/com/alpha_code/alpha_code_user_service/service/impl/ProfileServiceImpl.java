@@ -30,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -39,6 +40,9 @@ public class ProfileServiceImpl implements ProfileService {
     private final ProfileRepository profileRepository;
     private final AccountRepository accountRepository;
     private final S3Service s3Service;
+    private final RoleRepository roleRepository;
+
+    private static final String DEFAULT_ROLE = "USER";
 
     @Override
     @Cacheable(value = "profiles_list", key = "{#page, #size, #name, #accountId, #status, #isKid, #passCode}")
@@ -91,12 +95,32 @@ public class ProfileServiceImpl implements ProfileService {
                 .orElseThrow(() -> new RuntimeException("Account not found"));
         profile.setAccount(account);
         profile.setCreatedDate(LocalDateTime.now());
+        if (profileDto.getRoleId() != null) {
+            Role role = roleRepository.findById(profileDto.getRoleId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Vai trò"));
+            profile.setRole(role);
+        } else {
+            Optional<Role> roleOpt = roleRepository.findByNameIgnoreCase(DEFAULT_ROLE);
+            Role role;
+            if (roleOpt.isEmpty()) {
+                role = new Role();
+                role.setName(DEFAULT_ROLE);
+                role.setStatus(1);
+                roleRepository.save(role);
+            } else {
+                role = roleOpt.get();
+            }
+            profile.setRole(role);
+            profile.setRoleId(role.getId());
+        }
 
         try {
             if (profileDto.getAvatarFile() != null && !profileDto.getAvatarFile().isEmpty()) {
                 String fileKey = "avatars/" + System.currentTimeMillis() + "_" + profileDto.getAvatarFile().getOriginalFilename();
                 String avatarUrl = s3Service.uploadBytes(profileDto.getAvatarFile().getBytes(), fileKey, profileDto.getAvatarFile().getContentType());
                 profile.setAvatarUrl(avatarUrl);
+            } else {
+                profile.setAvatarUrl("");
             }
 
             Profile savedEntity = profileRepository.save(profile);
