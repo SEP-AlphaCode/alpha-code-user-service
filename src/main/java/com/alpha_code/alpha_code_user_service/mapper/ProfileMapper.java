@@ -23,6 +23,8 @@ public class ProfileMapper {
         dto.setCreatedDate(profile.getCreatedDate());
         dto.setLastUpdated(profile.getLastUpdated());
         dto.setStatus(profile.getStatus());
+        dto.setRoleId(profile.getRoleId());
+        dto.setParentProfileId(profile.getParentProfileId());
         return dto;
 
     }
@@ -43,6 +45,8 @@ public class ProfileMapper {
         profile.setCreatedDate(dto.getCreatedDate());
         profile.setLastUpdated(dto.getLastUpdated());
         profile.setStatus(dto.getStatus());
+        profile.setRoleId(dto.getRoleId());
+        profile.setParentProfileId(dto.getParentProfileId());
         return profile;
     }
 }
