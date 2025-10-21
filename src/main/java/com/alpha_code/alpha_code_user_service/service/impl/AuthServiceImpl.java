@@ -108,6 +108,7 @@ public class AuthServiceImpl implements AuthService {
                     .requiresProfile(false)
                     .accessToken(accessToken)
                     .refreshToken(refreshToken)
+                    .accountId(account.getId())
                     .profiles(null)
                     .build();
         }
@@ -121,6 +122,7 @@ public class AuthServiceImpl implements AuthService {
                     .profiles(List.of())
                     .accessToken(null)
                     .refreshToken(null)
+                    .accountId(account.getId())
                     .build();
         }
 
@@ -134,6 +136,7 @@ public class AuthServiceImpl implements AuthService {
                 .profiles(profileDtos)
                 .accessToken(null)
                 .refreshToken(null)
+                .accountId(account.getId())
                 .build();
     }
 
@@ -262,6 +265,7 @@ public class AuthServiceImpl implements AuthService {
                         .accessToken(accessToken)
                         .refreshToken(refreshToken)
                         .profiles(null)
+                        .accountId(account.getId())
                         .build();
             }
 
@@ -274,6 +278,7 @@ public class AuthServiceImpl implements AuthService {
                         .profiles(List.of())
                         .accessToken(null)
                         .refreshToken(null)
+                        .accountId(account.getId())
                         .build();
             }
 
@@ -287,6 +292,7 @@ public class AuthServiceImpl implements AuthService {
                     .profiles(profileDtos)
                     .accessToken(null)
                     .refreshToken(null)
+                    .accountId(account.getId())
                     .build();
 
         } catch (Exception e) {

@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.UUID;
 
 public class LoginDto implements Serializable {
 
@@ -30,6 +31,7 @@ public class LoginDto implements Serializable {
         private List<ProfileDto> profiles;
         private String accessToken;
         private String refreshToken;
+        private UUID accountId;
     }
 
     @Data

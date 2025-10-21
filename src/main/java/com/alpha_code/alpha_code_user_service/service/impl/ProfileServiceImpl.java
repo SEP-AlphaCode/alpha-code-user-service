@@ -92,6 +92,7 @@ public class ProfileServiceImpl implements ProfileService {
         profile.setAccount(account);
         profile.setCreatedDate(LocalDateTime.now());
 
+
         try {
             if (profileDto.getAvatarFile() != null && !profileDto.getAvatarFile().isEmpty()) {
                 String fileKey = "avatars/" + System.currentTimeMillis() + "_" + profileDto.getAvatarFile().getOriginalFilename();
