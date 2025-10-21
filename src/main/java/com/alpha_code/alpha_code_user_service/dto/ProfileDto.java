@@ -58,12 +58,6 @@ public class ProfileDto implements Serializable {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private MultipartFile avatarFile;
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private UUID roleId;
-
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private String roleName;
-
     @JsonProperty(value = "statusText", access = JsonProperty.Access.READ_ONLY)
     public String getStatusText() {
         return AccountEnum.fromCode(this.status);

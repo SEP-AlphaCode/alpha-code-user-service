@@ -45,8 +45,6 @@ public class SecurityConfig {
                                 // ✅ chỉ permit GET cho "get all"
                                 .requestMatchers(HttpMethod.GET, SecurityWhitelist.GET_WHITELIST).permitAll()
 
-                                .requestMatchers(HttpMethod.POST, SecurityWhitelist.POST_WHITELIST).permitAll()
-
                                 // ❌ còn lại yêu cầu login
                                 .anyRequest().authenticated()
                 )
