@@ -6,6 +6,7 @@ import com.alpha_code.alpha_code_user_service.service.ResponseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,24 +39,28 @@ public class ResponseController {
 
     @PostMapping
     @Operation(summary = "Create new response")
+    @PreAuthorize("hasAuthority('ROLE_Parent')")
     public ResponseDto createResponse(@RequestBody ResponseDto dto) {
         return service.create(dto);
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update response by Id")
+    @PreAuthorize("hasAuthority('ROLE_Parent')")
     public ResponseDto updateResponse(@PathVariable UUID id, @RequestBody ResponseDto dto) {
         return service.update(id, dto);
     }
 
     @PatchMapping("/{id}")
     @Operation(summary = "Patch update response by Id")
+    @PreAuthorize("hasAuthority('ROLE_Parent')")
     public ResponseDto patchUpdateResponse(@PathVariable UUID id, @RequestBody ResponseDto dto) {
         return service.patch(id, dto);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete response by Id")
+    @PreAuthorize("hasAuthority('ROLE_Parent')")
     public String deleteResponse(@PathVariable UUID id) {
         return service.delete(id);
     }
