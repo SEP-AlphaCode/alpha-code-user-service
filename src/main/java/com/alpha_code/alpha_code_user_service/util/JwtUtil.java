@@ -66,7 +66,9 @@ public class JwtUtil {
                 .claims(Map.of(
                         "id", account.getId().toString(),
                         "username", account.getUsername(),
-                        "email", account.getEmail()
+                        "email", account.getEmail(),
+                        "roleId", account.getRoleId(),
+                        "roleName", roleService.getById(account.getRoleId()).getName()
                 ))
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + refreshTokenExpirationMs))
@@ -88,6 +90,11 @@ public class JwtUtil {
 
     public UUID getUserIdFromToken(String token) {
         String idStr = getAllClaims(token).get("id", String.class);
+        return UUID.fromString(idStr);
+    }
+
+    public UUID getRoleIdFromToken(String token) {
+        String idStr = getAllClaims(token).get("roleId", String.class);
         return UUID.fromString(idStr);
     }
 

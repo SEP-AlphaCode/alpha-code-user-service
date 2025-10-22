@@ -376,6 +376,15 @@ public class AuthServiceImpl implements AuthService {
         String accessToken = jwtUtil.generateAccessToken(account);
         String refreshToken = jwtUtil.generateRefreshToken(account);
 
+        redisRefreshTokenService.save(
+                account.getId(),
+                refreshToken,
+                refreshTokenExpirationMs,
+                TimeUnit.MILLISECONDS
+        );
+
+        dashboardService.addOnlineUser(account.getId());
+
         // 5. Trả về access & refresh token
         return LoginDto.LoginResponse.builder()
                 .accessToken(accessToken)

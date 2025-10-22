@@ -2,8 +2,11 @@ package com.alpha_code.alpha_code_user_service.service.impl;
 
 import com.alpha_code.alpha_code_user_service.dto.LoginDto;
 import com.alpha_code.alpha_code_user_service.entity.Account;
+import com.alpha_code.alpha_code_user_service.entity.Role;
 import com.alpha_code.alpha_code_user_service.exception.AuthenticationException;
+import com.alpha_code.alpha_code_user_service.exception.ResourceNotFoundException;
 import com.alpha_code.alpha_code_user_service.repository.AccountRepository;
+import com.alpha_code.alpha_code_user_service.repository.RoleRepository;
 import com.alpha_code.alpha_code_user_service.service.DashboardService;
 import com.alpha_code.alpha_code_user_service.service.RedisRefreshTokenService;
 import com.alpha_code.alpha_code_user_service.service.RefreshTokenService;
@@ -23,6 +26,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private final JwtUtil jwtUtil;
     private final AccountRepository accountRepository;
     private final DashboardService dashboardService;
+    private final RoleRepository roleRepository;
 
     @Value("${jwt.refresh-expiration-ms}")
     private Long refreshTokenDurationMs;
@@ -52,8 +56,10 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Override
     public LoginDto.LoginResponse refreshNewToken(String refreshToken) {
         UUID userId;
+        UUID roldeId;
         try {
             userId = jwtUtil.getUserIdFromToken(refreshToken);
+            roldeId = jwtUtil.getRoleIdFromToken(refreshToken);
         } catch (Exception e) {
             throw new AuthenticationException("Invalid refresh token");
         }
@@ -63,8 +69,14 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
             throw new AuthenticationException("Refresh token is invalid or expired");
         }
 
+
         Account account = accountRepository.findById(userId)
                 .orElseThrow(() -> new AuthenticationException("User not found"));
+
+        Role role = roleRepository.findById(roldeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy role"));
+
+        account.setRoleId(role.getId());
 
         // cấp lại access token mới, refresh token giữ nguyên
         String newAccessToken = jwtUtil.generateAccessToken(account);
