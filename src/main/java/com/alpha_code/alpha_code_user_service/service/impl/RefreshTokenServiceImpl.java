@@ -57,9 +57,11 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     public LoginDto.LoginResponse refreshNewToken(String refreshToken) {
         UUID userId;
         UUID roldeId;
+        String fullName;
         try {
             userId = jwtUtil.getUserIdFromToken(refreshToken);
             roldeId = jwtUtil.getRoleIdFromToken(refreshToken);
+            fullName = jwtUtil.getFullNameFromToken(refreshToken);
         } catch (Exception e) {
             throw new AuthenticationException("Invalid refresh token");
         }
@@ -77,6 +79,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy role"));
 
         account.setRoleId(role.getId());
+        account.setFullName(fullName);
 
         // cấp lại access token mới, refresh token giữ nguyên
         String newAccessToken = jwtUtil.generateAccessToken(account);

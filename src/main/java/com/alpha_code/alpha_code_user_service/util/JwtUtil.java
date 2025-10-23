@@ -84,8 +84,8 @@ public class JwtUtil {
                 .getPayload();
     }
 
-    public String getUsernameFromJwt(String token) {
-        return getAllClaims(token).getSubject();
+    public String getFullNameFromToken(String token) {
+        return getAllClaims(token).get("fullName", String.class);
     }
 
     public UUID getUserIdFromToken(String token) {

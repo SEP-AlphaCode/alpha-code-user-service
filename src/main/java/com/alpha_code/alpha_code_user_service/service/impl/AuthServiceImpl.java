@@ -371,6 +371,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy account"));
 
         account.setRoleId(role.getId());
+        account.setFullName(profile.getName());
 
         // 4. Sinh token mới (gắn profileId + role vào claim)
         String accessToken = jwtUtil.generateAccessToken(account);
