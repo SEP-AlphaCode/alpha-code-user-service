@@ -9,6 +9,8 @@ import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @EnableCaching
@@ -16,12 +18,24 @@ public class CacheConfig {
 
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
-        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
+        // Default TTL = 10 minutes
+        RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(10)) // TTL mặc định 10 phút
                 .disableCachingNullValues();
 
+        // Custom per-cache configurations
+        Map<String, RedisCacheConfiguration> cacheConfigs = new HashMap<>();
+        // For notifications we want 30 days
+        RedisCacheConfiguration notificationsConfig = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofDays(30))
+                .disableCachingNullValues();
+
+        cacheConfigs.put("notifications", notificationsConfig);
+        cacheConfigs.put("notifications_list", notificationsConfig);
+
         return RedisCacheManager.builder(connectionFactory)
-                .cacheDefaults(config)
+                .cacheDefaults(defaultConfig)
+                .withInitialCacheConfigurations(cacheConfigs)
                 .build();
     }
 }
