@@ -17,6 +17,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,6 +33,7 @@ public class ProfileServiceImpl implements ProfileService {
     private final ProfileRepository profileRepository;
     private final AccountRepository accountRepository;
     private final S3Service s3Service;
+    private final BCryptPasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
 
     private UUID resolveRoleIdByIsKid(Boolean isKid) {
@@ -43,7 +45,7 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Cacheable(value = "profiles_list", key = "{#page, #size, #name, #accountId, #status, #isKid, #passCode}")
-    public PagedResult<ProfileDto> searchProfiles(int page, int size, String name, UUID accountId, Integer status, Boolean isKid, Integer passCode) {
+    public PagedResult<ProfileDto> searchProfiles(int page, int size, String name, UUID accountId, Integer status, Boolean isKid, String passCode) {
         Pageable pageable = PageRequest.of(page - 1, size);
         Page<Profile> pageResult;
 
@@ -91,6 +93,7 @@ public class ProfileServiceImpl implements ProfileService {
         var account = accountRepository.findById(profileDto.getAccountId())
                 .orElseThrow(() -> new RuntimeException("Account not found"));
         profile.setAccount(account);
+        profile.setPassCode(passwordEncoder.encode(profileDto.getPassCode()));
         profile.setCreatedDate(LocalDateTime.now());
         // set roleId based on isKid
         profile.setRoleId(resolveRoleIdByIsKid(profile.getIsKid()));
@@ -125,7 +128,7 @@ public class ProfileServiceImpl implements ProfileService {
         profile.setIsKid(profileDto.getIsKid());
         // update roleId after isKid change
         profile.setRoleId(resolveRoleIdByIsKid(profile.getIsKid()));
-        profile.setPassCode(profileDto.getPassCode());
+        profile.setPassCode(passwordEncoder.encode(profileDto.getPassCode()));
         profile.setLastActiveAt(profileDto.getLastActiveAt());
         profile.setStatus(profileDto.getStatus());
 
@@ -153,7 +156,7 @@ public class ProfileServiceImpl implements ProfileService {
             profile.setIsKid(profileDto.getIsKid());
         }
         if (profileDto.getPassCode() != null){
-            profile.setPassCode(profileDto.getPassCode());
+            profile.setPassCode(passwordEncoder.encode(profileDto.getPassCode()));
         }
         if (profileDto.getLastActiveAt() != null){
             profile.setLastActiveAt(profileDto.getLastActiveAt());
@@ -183,7 +186,7 @@ public class ProfileServiceImpl implements ProfileService {
         profile.setIsKid(profileDto.getIsKid());
         // update roleId after isKid change
         profile.setRoleId(resolveRoleIdByIsKid(profile.getIsKid()));
-        profile.setPassCode(profileDto.getPassCode());
+        profile.setPassCode(passwordEncoder.encode(profileDto.getPassCode()));
         profile.setLastActiveAt(profileDto.getLastActiveAt());
         profile.setStatus(profileDto.getStatus());
 
@@ -221,7 +224,7 @@ public class ProfileServiceImpl implements ProfileService {
             profile.setIsKid(profileDto.getIsKid());
         }
         if (profileDto.getPassCode() != null){
-            profile.setPassCode(profileDto.getPassCode());
+            profile.setPassCode(passwordEncoder.encode(profileDto.getPassCode()));
         }
         if (profileDto.getLastActiveAt() != null){
             profile.setLastActiveAt(profileDto.getLastActiveAt());
@@ -282,7 +285,7 @@ public class ProfileServiceImpl implements ProfileService {
     @Transactional
     @CachePut(value = "profile", key = "#id")
     @CacheEvict(value = {"profiles_list, profile, profiles_by_account"}, allEntries = true)
-    public ProfileDto updateProfilePassCode(UUID id, Integer oldPassCode, Integer passCode) {
+    public ProfileDto updateProfilePassCode(UUID id, String oldPassCode, String passCode) {
         var profile = profileRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Profile not found"));
 
@@ -290,7 +293,7 @@ public class ProfileServiceImpl implements ProfileService {
             throw new RuntimeException("Mật khẩu cũ không chính xác");
         }
 
-        profile.setPassCode(passCode);
+        profile.setPassCode(passwordEncoder.encode(passCode));
         profile.setLastUpdated(LocalDateTime.now());
 
         Profile savedEntity = profileRepository.save(profile);

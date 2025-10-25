@@ -40,7 +40,8 @@ public class ProfileMapper {
         profile.setAccountId(dto.getAccountId());
         profile.setAvatarUrl(dto.getAvatarUrl());
         profile.setIsKid(dto.getIsKid());
-        profile.setPassCode(dto.getPassCode());
+//        profile.setPassCode(dto.getPassCode());
+        profile.setPassCode(dto.getPassCode() != null ? dto.getPassCode().trim() : null);
         profile.setLastActiveAt(dto.getLastActiveAt());
         profile.setCreatedDate(dto.getCreatedDate());
         profile.setLastUpdated(dto.getLastUpdated());

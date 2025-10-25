@@ -44,9 +44,10 @@ public class ProfileDto implements Serializable {
     private UUID parentProfileId;
 
     @NotNull(message = "PassCode không được để trống", groups = OnCreate.class)
-    @Pattern(regexp = "\\d{4}", message = "PassCode phải gồm đúng 4 chữ số")
+    @Pattern(regexp = "^[0-9]{4}$", message = "PassCode phải gồm đúng 4 chữ số")
+    @Size(max = 4, message = "PassCode không được dài quá 4 ký tự")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private Integer passCode;
+    private String passCode;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime lastActiveAt;

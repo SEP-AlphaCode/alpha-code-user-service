@@ -8,5 +8,5 @@ import java.util.UUID;
 public class SwitchProfileRequest {
     private UUID accountId;
     private UUID profileId;
-    private Integer passCode;
+    private String passCode;
 }

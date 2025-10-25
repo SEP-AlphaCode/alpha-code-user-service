@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ProfileService {
-    PagedResult<ProfileDto> searchProfiles(int page, int size, String name, UUID accountId, Integer status, Boolean isKid, Integer passCode);
+    PagedResult<ProfileDto> searchProfiles(int page, int size, String name, UUID accountId, Integer status, Boolean isKid, String passCode);
 
     ProfileDto getProfileById(UUID id);
 
@@ -29,7 +29,7 @@ public interface ProfileService {
 
     ProfileDto updateProfileStatus(UUID id, Integer status);
 
-    ProfileDto updateProfilePassCode(UUID id, Integer oldPassCode, Integer passCode);
+    ProfileDto updateProfilePassCode(UUID id, String oldPassCode, String passCode);
 
     ProfileDto updateAvatar(UUID id, MultipartFile avatar);
 

@@ -45,8 +45,8 @@ public class Profile {
     @Column(name = "is_kid", nullable = false)
     private Boolean isKid = false;
 
-    @Column(name = "pass_code", nullable = false)
-    private Integer passCode;
+    @Column(name = "pass_code", nullable = false, length = 255)
+    private String passCode;
 
     @Column(name = "last_active_at")
     private LocalDateTime lastActiveAt;
