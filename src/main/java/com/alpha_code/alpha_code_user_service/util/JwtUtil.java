@@ -65,6 +65,7 @@ public class JwtUtil {
         return Jwts.builder()
                 .claims(Map.of(
                         "id", account.getId().toString(),
+                        "fullName", account.getFullName(),
                         "username", account.getUsername(),
                         "email", account.getEmail(),
                         "roleId", account.getRoleId(),
