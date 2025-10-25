@@ -31,7 +31,7 @@ public class ProfileController {
                                           @RequestParam(value = "accountId", required = false) UUID accountId,
                                           @RequestParam(value = "status", required = false) Integer status,
                                           @RequestParam(value = "isKid", required = false) Boolean isKid,
-                                          @RequestParam(value = "passCode", required = false) Integer passCode) {
+                                          @RequestParam(value = "passCode", required = false) String passCode) {
         return profileService.searchProfiles(page, size, name, accountId, status, isKid, passCode);
     }
 

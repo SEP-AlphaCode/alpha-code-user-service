@@ -359,7 +359,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy profile"));
 
         // 2. Nếu profile là trẻ em và có passcode thì kiểm tra
-        if (profile.getPassCode() != null && !profile.getPassCode().equals(request.getPassCode())) {
+        if (profile.getPassCode() != null && !passwordEncoder.matches(request.getPassCode().trim(), profile.getPassCode())) {
             throw new IllegalArgumentException("PassCode không đúng");
         }
 

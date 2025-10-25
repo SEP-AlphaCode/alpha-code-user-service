@@ -21,14 +21,14 @@ public interface ProfileRepository extends JpaRepository<Profile, UUID> {
           AND (:accountId IS NULL OR p.accountId = :accountId)
           AND (:status IS NULL OR p.status = :status)
           AND (:isKid IS NULL OR p.isKid = :isKid)
-          AND (:passCode IS NULL OR p.passCode = :passCode)
+          AND (:passCode IS NULL OR :passCode = '' OR p.passCode = :passCode)
     """)
     Page<Profile> searchProfiles(
             @Param("name") String name,
             @Param("accountId") UUID accountId,
             @Param("status") Integer status,
             @Param("isKid") Boolean isKid,
-            @Param("passCode") Integer passCode,
+            @Param("passCode") String passCode,
             Pageable pageable
     );
 
