@@ -60,12 +60,12 @@ public class AuthServiceImpl implements AuthService {
     private final DashboardService dashboardService;
     @Value("${web-base-url}")
     private String webBaseUrl;
-    private JavaMailSender mailSender;
+    private final JavaMailSender mailSender;
 
     @Value("${jwt.refresh-expiration-ms}")
     private long refreshTokenExpirationMs;
-    @Autowired
-    private PaymentServiceClient paymentServiceClient;
+
+    private final PaymentServiceClient paymentServiceClient;
 
     @Override
     @Transactional
