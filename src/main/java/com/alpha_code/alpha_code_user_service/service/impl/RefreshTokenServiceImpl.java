@@ -5,6 +5,7 @@ import com.alpha_code.alpha_code_user_service.entity.Account;
 import com.alpha_code.alpha_code_user_service.entity.Role;
 import com.alpha_code.alpha_code_user_service.exception.AuthenticationException;
 import com.alpha_code.alpha_code_user_service.exception.ResourceNotFoundException;
+import com.alpha_code.alpha_code_user_service.grpc.client.PaymentServiceClient;
 import com.alpha_code.alpha_code_user_service.repository.AccountRepository;
 import com.alpha_code.alpha_code_user_service.repository.RoleRepository;
 import com.alpha_code.alpha_code_user_service.service.DashboardService;
@@ -27,6 +28,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private final AccountRepository accountRepository;
     private final DashboardService dashboardService;
     private final RoleRepository roleRepository;
+    private final PaymentServiceClient paymentServiceClient;
 
     @Value("${jwt.refresh-expiration-ms}")
     private Long refreshTokenDurationMs;
@@ -88,9 +90,12 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         redisService.delete(userId);
         redisService.save(userId, newFreshToken, refreshTokenDurationMs, TimeUnit.MILLISECONDS);
 
+        var key = paymentServiceClient.getKeyByAccountId(account.getId());
+
         return LoginDto.LoginResponse.builder()
                 .accessToken(newAccessToken)
                 .refreshToken(newFreshToken)
+                .key(key.getKey())
                 .build();
     }
 

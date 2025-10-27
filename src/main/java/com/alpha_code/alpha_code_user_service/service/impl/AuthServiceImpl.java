@@ -11,6 +11,7 @@ import com.alpha_code.alpha_code_user_service.entity.Role;
 import com.alpha_code.alpha_code_user_service.exception.AuthenticationException;
 import com.alpha_code.alpha_code_user_service.exception.ConflictException;
 import com.alpha_code.alpha_code_user_service.exception.ResourceNotFoundException;
+import com.alpha_code.alpha_code_user_service.grpc.client.PaymentServiceClient;
 import com.alpha_code.alpha_code_user_service.mapper.AccountMapper;
 import com.alpha_code.alpha_code_user_service.mapper.ProfileMapper;
 import com.alpha_code.alpha_code_user_service.repository.AccountRepository;
@@ -66,6 +67,8 @@ public class AuthServiceImpl implements AuthService {
     private ProfileRepository profileRepository;
     @Autowired
     private AccountRepository accountRepository;
+    @Autowired
+    private PaymentServiceClient paymentServiceClient;
 
     @Override
     @Transactional
@@ -386,10 +389,12 @@ public class AuthServiceImpl implements AuthService {
 
         dashboardService.addOnlineUser(account.getId());
 
+        var key = paymentServiceClient.getKeyByAccountId(account.getId());
+
         // 5. Trả về access & refresh token
         return LoginDto.LoginResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
-                .build();
+                .key(key.getKey()).build();
     }
 }

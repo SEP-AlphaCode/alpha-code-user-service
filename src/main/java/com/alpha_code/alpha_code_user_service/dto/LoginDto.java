@@ -32,6 +32,7 @@ public class LoginDto implements Serializable {
         private String accessToken;
         private String refreshToken;
         private UUID accountId;
+        private String key;
     }
 
     @Data
