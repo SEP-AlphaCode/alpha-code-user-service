@@ -51,8 +51,8 @@ public class AuthServiceImpl implements AuthService {
     private final AccountRepository repository;
 //    private final RefreshTokenRepository refreshTokenRepository;
     private final RoleRepository roleRepository;
-    private ProfileRepository profileRepository;
-    private AccountRepository accountRepository;
+    private final ProfileRepository profileRepository;
+    private final AccountRepository accountRepository;
     private final RedisRefreshTokenService redisRefreshTokenService;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
@@ -64,10 +64,6 @@ public class AuthServiceImpl implements AuthService {
 
     @Value("${jwt.refresh-expiration-ms}")
     private long refreshTokenExpirationMs;
-    @Autowired
-    private ProfileRepository profileRepository;
-    @Autowired
-    private AccountRepository accountRepository;
     @Autowired
     private PaymentServiceClient paymentServiceClient;
 
