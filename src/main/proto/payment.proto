@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "payment";
+option java_outer_classname = "PaymentProto";
+
+service PaymentService {
+  rpc GetKeyByAccountId(GetRequest) returns (GetKeyResponse);
+}
+
+message GetRequest {
+  string id = 1;
+}
+
+message GetKeyResponse {
+  string key = 1;
+}
