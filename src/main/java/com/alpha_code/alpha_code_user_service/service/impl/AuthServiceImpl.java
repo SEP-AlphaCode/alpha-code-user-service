@@ -386,12 +386,13 @@ public class AuthServiceImpl implements AuthService {
 
         dashboardService.addOnlineUser(account.getId());
 
-        var key = paymentServiceClient.getKeyByAccountId(account.getId());
+        var keyResponse = paymentServiceClient.getKeyByAccountId(account.getId());
+        String key = keyResponse != null ? keyResponse.getKey() : "";
 
         // 5. Trả về access & refresh token
         return LoginDto.LoginResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
-                .key(key.getKey()).build();
+                .key(key).build();
     }
 }

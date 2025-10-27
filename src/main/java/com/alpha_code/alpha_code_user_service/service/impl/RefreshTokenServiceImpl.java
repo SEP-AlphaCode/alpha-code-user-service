@@ -90,12 +90,13 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         redisService.delete(userId);
         redisService.save(userId, newFreshToken, refreshTokenDurationMs, TimeUnit.MILLISECONDS);
 
-        var key = paymentServiceClient.getKeyByAccountId(account.getId());
+        var keyResponse = paymentServiceClient.getKeyByAccountId(account.getId());
+        String key = keyResponse != null ? keyResponse.getKey() : "";
 
         return LoginDto.LoginResponse.builder()
                 .accessToken(newAccessToken)
                 .refreshToken(newFreshToken)
-                .key(key.getKey())
+                .key(key)
                 .build();
     }
 
