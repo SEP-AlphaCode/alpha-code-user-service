@@ -210,10 +210,6 @@ public class AccountServiceImpl implements AccountService {
         if (accountDto.getRoleId() != null) {
             existingAccount.setRoleId(accountDto.getRoleId());
         }
-
-        if(accountDto.getStatus() != null) {
-            existingAccount.setStatus(accountDto.getStatus());
-        }
         
         existingAccount.setLastUpdated(LocalDateTime.now());
 
@@ -299,11 +295,12 @@ public class AccountServiceImpl implements AccountService {
     @Transactional
     @CachePut(value = "accounts", key = "#id")
     @CacheEvict(value = {"accounts_list", "grpc_account"}, allEntries = true)
-    public AccountDto changeStatus(UUID id, Integer status) {
+    public AccountDto changeStatus(UUID id, Integer status, String bannedReason) {
         Account existingAccount = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Tài khoản"));
 
         existingAccount.setStatus(status);
+        existingAccount.setBannedReason(bannedReason);
         existingAccount.setLastUpdated(LocalDateTime.now());
         Account updatedEntity = repository.save(existingAccount);
         return AccountMapper.toDto(updatedEntity);

@@ -219,7 +219,7 @@ public class AccountController {
     @PatchMapping("/{id}/change-status")
     @Operation(summary = "Change account status")
     @PreAuthorize("hasAuthority('ROLE_Admin')")
-    public AccountDto changeStatus(@PathVariable UUID id, @Validated(OnUpdate.class) @RequestParam Integer status) {
-        return service.changeStatus(id, status);
+    public AccountDto changeStatus(@PathVariable UUID id, @Validated(OnUpdate.class) @RequestParam Integer status, @RequestParam(required = false) String bannedReason) {
+        return service.changeStatus(id, status, bannedReason);
     }
 }

@@ -25,7 +25,7 @@ public interface AccountService {
 
     AccountDto changePassword(UUID id, String oldPassword, String newPassword);
 
-    AccountDto changeStatus(UUID id, Integer status);
+    AccountDto changeStatus(UUID id, Integer status, String bannedReason);
 
     String delete(UUID id);
 
