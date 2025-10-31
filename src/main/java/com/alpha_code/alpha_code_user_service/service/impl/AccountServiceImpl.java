@@ -210,6 +210,11 @@ public class AccountServiceImpl implements AccountService {
         if (accountDto.getRoleId() != null) {
             existingAccount.setRoleId(accountDto.getRoleId());
         }
+
+        if(accountDto.getStatus() != null) {
+            existingAccount.setStatus(accountDto.getStatus());
+        }
+        
         existingAccount.setLastUpdated(LocalDateTime.now());
 
         Account updatedEntity = repository.save(existingAccount);
