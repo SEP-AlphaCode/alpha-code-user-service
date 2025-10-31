@@ -296,8 +296,12 @@ public class AccountServiceImpl implements AccountService {
     @CachePut(value = "accounts", key = "#id")
     @CacheEvict(value = {"accounts_list", "grpc_account"}, allEntries = true)
     public AccountDto changeStatus(UUID id, Integer status, String bannedReason) {
-        Account existingAccount = repository.findById(id)
+        Account existingAccount = repository.findAccountById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Tài khoản"));
+
+        if(existingAccount.getRole().getName().equals("Admin")){
+            throw new ConflictException("Không thể thay đổi trạng thái của Admin");
+        }
 
         existingAccount.setStatus(status);
         existingAccount.setBannedReason(bannedReason);

@@ -42,4 +42,7 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
 
     @Query("SELECT a FROM Account a WHERE a.id = :id")
     Optional<Account> findAccountByIdGrpc(@Param("id") UUID id);
+
+    @Query("SELECT a FROM Account a join a.role WHERE a.id = :id")
+    Optional<Account> findAccountById(@Param("id") UUID id);
 }
