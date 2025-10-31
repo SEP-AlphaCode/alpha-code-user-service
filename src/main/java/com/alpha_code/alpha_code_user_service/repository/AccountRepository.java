@@ -12,7 +12,15 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface AccountRepository extends JpaRepository<Account, UUID> {
-    Page<Account> findAllByStatus(Integer status, Pageable pageable);
+    @Query("""
+    SELECT a
+    FROM Account a
+    WHERE
+        (:status IS NOT NULL AND a.status = :status)
+        OR (:status IS NULL AND a.status <> 0)
+""")
+    Page<Account> findAllByStatus(@Param("status") Integer status, Pageable pageable);
+
 
     Account findAccountByFullName(String fullName);
 
