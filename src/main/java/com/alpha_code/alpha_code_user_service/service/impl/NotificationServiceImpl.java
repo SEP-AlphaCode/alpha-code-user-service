@@ -169,6 +169,18 @@ public class NotificationServiceImpl implements NotificationService {
                 );
             }
 
+            if(type == NotificationTypeEnum.FINISHCOURSE){
+                var account = accountRepository.findById(result.getAccountId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản để gửi email"));
+
+                mailService.sendCourseCompletedEmail(
+                        account.getEmail(),
+                        account.getFullName(),
+                        notificationDto.getServiceName(),
+                        notificationDto.getMessage() // Tên khóa học
+                );
+            }
+
         } catch (Exception e) {
             log.error("Lỗi khi gửi email thông báo thanh toán: ", e);
         }

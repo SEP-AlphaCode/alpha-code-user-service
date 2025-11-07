@@ -44,6 +44,34 @@ public class NotificationConsumer {
         notificationService.create(noti);
     }
 
+    // --- New listener for course completion ---
+    @RabbitListener(
+            queues = "course.completed.queue",
+            containerFactory = "rabbitListenerContainerFactory"
+    )
+    public void handleCourseCompleted(Map<String, Object> message) {
+        log.info("Received message from course.completed.queue: {}", message);
+
+        String accountIdStr = (String) message.get("accountId").toString();
+        UUID accountId = UUID.fromString(accountIdStr);
+        String courseIdStr = (String) message.get("courseId");
+        String courseName = (String) message.get("courseName");
+
+
+
+        var noti = new NotificationDto();
+        noti.setAccountId(accountId);
+        noti.setTitle("Hoàn thành khóa học");
+        noti.setMessage(courseIdStr);
+        noti.setType(NotificationTypeEnum.FINISHCOURSE.getCode());
+        noti.setServiceName(courseName);
+        noti.setStatus(1);
+
+        notificationService.create(noti);
+
+        log.info("Notification for course completion created for accountId={}, courseId={}", accountId, courseIdStr);
+    }
+
 
 
 }

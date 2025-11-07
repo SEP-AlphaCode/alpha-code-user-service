@@ -78,4 +78,26 @@ public class EmailBody {
                 </html>
                 """, fullName, fullName, serviceName, orderCode, price);
     }
+
+    public static String getCourseCompletedEmailBody(String fullName, String courseName, String courseId) {
+        return String.format("""
+            <html>
+            <body style="font-family: Arial, sans-serif; color: #333;">
+                <div style="max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
+                    <div style="text-align: center;">
+                        <img src="cid:alphacode-logo" alt="AlphaCode Logo" style="width: 120px;"/>
+                        <h2 style="color: #2a7ae2;">Chúc mừng %s đã hoàn thành khóa học!</h2>
+                    </div>
+                    <p>Xin chào <b>%s</b>,</p>
+                    <p>Bạn vừa hoàn thành khóa học <b>%s</b> với mã khóa học: <b>#%d</b></p>
+                    <p>Cảm ơn bạn đã tin tưởng sử dụng nền tảng <b>AlphaCode</b>.</p>
+                    <p>Nếu có thắc mắc, vui lòng liên hệ với chúng tôi qua email: <a href="mailto:alphacodeedu@gmail.com">alphacodeedu@gmail.com</a>.</p>
+                    <br>
+                    <p style="font-size: 12px; color: #777;">Trân trọng,<br>Đội ngũ AlphaCode</p>
+                </div>
+            </body>
+            </html>
+            """, fullName, fullName, courseName, courseId);
+    }
+
 }

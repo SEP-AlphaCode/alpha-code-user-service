@@ -11,7 +11,8 @@ public enum NotificationTypeEnum {
     COURSE_ASSIGNED(2, "Khóa học mới được thêm"),
     LICENSE_EXPIRED(3, "Giấy phép sắp hết hạn"),
     SYSTEM(4, "Thông báo hệ thống"),
-    PROMOTION(5, "Khuyến mãi");
+    PROMOTION(5, "Khuyến mãi"),
+    FINISHCOURSE(6, "Hoàn thành khóa học");
 
     private final int code;
     private final String description;

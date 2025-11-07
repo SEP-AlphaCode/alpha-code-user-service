@@ -10,4 +10,7 @@ public interface MailService {
             Long orderCode,
             Integer price
     ) throws MessagingException;
+    void sendCourseCompletedEmail(String to, String fullName, String courseName, String courseId)
+            throws MessagingException;
+
 }

@@ -41,4 +41,30 @@ public class MailServiceImpl implements MailService {
         mailSender.send(message);
         log.info("Đã gửi email thanh toán thành công tới {}", to);
     }
+
+    @Override
+    public void sendCourseCompletedEmail(String to, String fullName, String courseName, String courseId)
+            throws MessagingException {
+
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        helper.setTo(to);
+        helper.setSubject("Chúc mừng bạn đã hoàn thành khóa học - AlphaCode");
+
+        // Nội dung email HTML
+        String emailContent = EmailBody.getCourseCompletedEmailBody(fullName, courseName, courseId);
+        helper.setText(emailContent, true);
+
+        // Gắn logo inline
+        ClassPathResource logoImage = new ClassPathResource("images/alphacode-logo.png");
+        if (logoImage.exists()) {
+            helper.addInline("alphacode-logo", logoImage);
+        }
+
+        // Gửi email
+        mailSender.send(message);
+        log.info("Đã gửi email hoàn thành khóa học tới {}", to);
+    }
+
 }
