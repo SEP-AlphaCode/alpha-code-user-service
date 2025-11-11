@@ -89,7 +89,7 @@ public class EmailBody {
                         <h2 style="color: #2a7ae2;">Chúc mừng %s đã hoàn thành khóa học!</h2>
                     </div>
                     <p>Xin chào <b>%s</b>,</p>
-                    <p>Bạn vừa hoàn thành khóa học <b>%s</b> với mã khóa học: <b>#%d</b></p>
+                    <p>Bạn vừa hoàn thành khóa học <b>%s</b> với mã khóa học: <b>%s</b></p>
                     <p>Cảm ơn bạn đã tin tưởng sử dụng nền tảng <b>AlphaCode</b>.</p>
                     <p>Nếu có thắc mắc, vui lòng liên hệ với chúng tôi qua email: <a href="mailto:alphacodeedu@gmail.com">alphacodeedu@gmail.com</a>.</p>
                     <br>

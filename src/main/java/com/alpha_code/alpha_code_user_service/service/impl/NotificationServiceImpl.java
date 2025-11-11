@@ -182,7 +182,7 @@ public class NotificationServiceImpl implements NotificationService {
             }
 
         } catch (Exception e) {
-            log.error("Lỗi khi gửi email thông báo thanh toán: ", e);
+            log.error("Lỗi khi gửi email thông báo: ", e);
         }
 
         return result;
