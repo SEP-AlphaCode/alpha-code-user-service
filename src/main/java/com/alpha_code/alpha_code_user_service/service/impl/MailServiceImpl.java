@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class MailServiceImpl implements MailService {
     private final JavaMailSender mailSender;
+    private final EmailBody emailBody;
 
     @Override
     public void sendPaymentSuccessEmail(String to, String fullName, String serviceName, Long orderCode, Integer price)
@@ -43,7 +44,7 @@ public class MailServiceImpl implements MailService {
     }
 
     @Override
-    public void sendCourseCompletedEmail(String to, String fullName, String courseName, String courseId)
+    public void sendCourseCompletedEmail(String to, String fullName, String courseName, String courseId, String accountId)
             throws MessagingException {
 
         MimeMessage message = mailSender.createMimeMessage();
@@ -53,7 +54,7 @@ public class MailServiceImpl implements MailService {
         helper.setSubject("Chúc mừng bạn đã hoàn thành khóa học - AlphaCode");
 
         // Nội dung email HTML
-        String emailContent = EmailBody.getCourseCompletedEmailBody(fullName, courseName, courseId);
+        String emailContent = emailBody.getCourseCompletedEmailBody(fullName, courseName, courseId, accountId);
         helper.setText(emailContent, true);
 
         // Gắn logo inline

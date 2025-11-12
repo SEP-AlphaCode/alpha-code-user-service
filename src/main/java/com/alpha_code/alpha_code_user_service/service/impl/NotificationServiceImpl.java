@@ -177,7 +177,8 @@ public class NotificationServiceImpl implements NotificationService {
                         account.getEmail(),
                         account.getFullName(),
                         notificationDto.getServiceName(),
-                        notificationDto.getMessage() // Tên khóa học
+                        notificationDto.getMessage(), // Tên khóa học
+                        notificationDto.getAccountId().toString()
                 );
             }
 

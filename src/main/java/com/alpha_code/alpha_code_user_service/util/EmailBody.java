@@ -1,6 +1,14 @@
 package com.alpha_code.alpha_code_user_service.util;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+@Component
 public class EmailBody {
+
+    @Value("${web-base-url")
+    private String websiteUrl;
+
     public static String getResetPasswordEmailBody(String fullName, String resetLink) {
         return """
                 <html>
@@ -79,25 +87,34 @@ public class EmailBody {
                 """, fullName, fullName, serviceName, orderCode, price);
     }
 
-    public static String getCourseCompletedEmailBody(String fullName, String courseName, String courseId) {
+    public String getCourseCompletedEmailBody(String fullName, String courseName, String courseId, String accountId) {
+        String certificateLink = String.format("%s/certificate?accountId=%s&courseId=%s", websiteUrl, accountId, courseId);
+
         return String.format("""
             <html>
-            <body style="font-family: Arial, sans-serif; color: #333;">
-                <div style="max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
+            <body style="font-family: Arial, sans-serif; color: #333; background-color: #f5f7fa; margin: 0; padding: 0;">
+                <div style="max-width: 600px; margin: 40px auto; background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                     <div style="text-align: center;">
                         <img src="cid:alphacode-logo" alt="AlphaCode Logo" style="width: 120px;"/>
-                        <h2 style="color: #2a7ae2;">Chúc mừng %s đã hoàn thành khóa học!</h2>
+                        <h2 style="color: #2a7ae2;">🎉 Chúc mừng %s đã hoàn thành khóa học!</h2>
                     </div>
                     <p>Xin chào <b>%s</b>,</p>
-                    <p>Bạn vừa hoàn thành khóa học <b>%s</b> với mã khóa học: <b>%s</b></p>
-                    <p>Cảm ơn bạn đã tin tưởng sử dụng nền tảng <b>AlphaCode</b>.</p>
-                    <p>Nếu có thắc mắc, vui lòng liên hệ với chúng tôi qua email: <a href="mailto:alphacodeedu@gmail.com">alphacodeedu@gmail.com</a>.</p>
-                    <br>
-                    <p style="font-size: 12px; color: #777;">Trân trọng,<br>Đội ngũ AlphaCode</p>
+                    <p>Bạn vừa hoàn thành khóa học <b>%s</b> (Mã: <b>%s</b>).</p>
+                    <p>Chứng chỉ của bạn đã sẵn sàng! Nhấn vào nút bên dưới để xem và tải chứng chỉ của bạn:</p>
+
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="%s"\s
+                           style="background-color: #2a7ae2; color: #fff; text-decoration: none;\s
+                                  padding: 14px 28px; border-radius: 8px; font-size: 16px; font-weight: bold;">
+                            Xem chứng chỉ
+                        </a>
+                    </div>
+
+                    <p style="color: #777; font-size: 14px;">Cảm ơn bạn đã học cùng <b>AlphaCode</b> 💙</p>
+                    <p style="font-size: 12px; color: #aaa; text-align: center;">© 2025 AlphaCode. All rights reserved.</p>
                 </div>
             </body>
             </html>
-            """, fullName, fullName, courseName, courseId);
+           \s""", fullName, fullName, courseName, courseId, certificateLink);
     }
-
 }
