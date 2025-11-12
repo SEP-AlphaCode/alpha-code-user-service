@@ -17,7 +17,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NotificationDto implements Serializable {
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private UUID id;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

@@ -122,14 +122,14 @@ public class NotificationServiceImpl implements NotificationService {
         result.setId(id);
 
         Instant now = Instant.now();
-        result.setCreatedDate(LocalDateTime.ofInstant(now, ZoneOffset.UTC));
+        result.setCreatedDate(LocalDateTime.now());
         result.setAccountId(notificationDto.getAccountId());
         result.setType(notificationDto.getType());
         result.setTitle(notificationDto.getTitle());
         result.setMessage(notificationDto.getMessage());
         result.setIsRead(notificationDto.getIsRead() != null ? notificationDto.getIsRead() : Boolean.FALSE);
         result.setStatus(notificationDto.getStatus());
-        result.setLastUpdated(LocalDateTime.ofInstant(now, ZoneOffset.UTC));
+        result.setLastUpdated(LocalDateTime.now());
         result.setOrderCode(notificationDto.getOrderCode());
         result.setServiceName(notificationDto.getServiceName());
         result.setPrice(notificationDto.getPrice());
