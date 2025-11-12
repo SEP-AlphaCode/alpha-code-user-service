@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -18,4 +19,11 @@ public class NotificationPublisher {
         String destination = "/topic/notifications/" + accountId;
         messagingTemplate.convertAndSend(destination, notification);
     }
+
+    public void sendToUsers(List<UUID> accountIds, NotificationDto notification) {
+        for (UUID accountId : accountIds) {
+            sendToUser(accountId, notification);
+        }
+    }
+
 }

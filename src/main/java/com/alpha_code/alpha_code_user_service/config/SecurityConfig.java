@@ -28,17 +28,14 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(Customizer.withDefaults())
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/ws/**") // Disable CSRF for WebSocket
+                        .disable()
+                )
                 .authorizeHttpRequests(auth -> auth
-//                                .requestMatchers(
-//                                        "/v3/api-docs/**",
-//                                        "/swagger-ui.html",
-//                                        "/swagger-ui/**",
-//                                        "/api/v1/auth/**"
-//                                ).permitAll()
-////                        .anyRequest().authenticated()
-//                                .anyRequest().permitAll()
-
+                                // ✅ WebSocket endpoints - MUST BE FIRST
+                                .requestMatchers("/ws/**").permitAll()
+                                
                                 // ✅ permit mọi method cho mấy endpoint chung
                                 .requestMatchers(SecurityWhitelist.GENERAL_WHITELIST).permitAll()
 
