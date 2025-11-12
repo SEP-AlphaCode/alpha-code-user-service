@@ -285,6 +285,9 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     @CacheEvict(value = "notifications", key = "#id")
+    @Caching(evict = {
+            @CacheEvict(value = "notifications_list", allEntries = true),
+    })
     public NotificationDto changeStatus(UUID id, Integer status) {
         String key = notificationKey(id);
         String json = redisTemplate.opsForValue().get(key);
@@ -305,6 +308,9 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     @CachePut(value = "notifications", key = "#id")
+    @Caching(evict = {
+            @CacheEvict(value = "notifications_list", allEntries = true),
+    })
     public NotificationDto readNotification(UUID id) {
         String key = notificationKey(id);
         String json = redisTemplate.opsForValue().get(key);
@@ -324,6 +330,9 @@ public class NotificationServiceImpl implements NotificationService {
     // ---------------- READ ALL NOTIFICATIONS ----------------
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "notifications_list", allEntries = true),
+    })
     public Map<String, Object> readAllNotifications(UUID accountId) {
         if (accountId == null) throw new IllegalArgumentException("Account ID required");
 
