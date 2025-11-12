@@ -150,8 +150,8 @@ public class NotificationServiceImpl implements NotificationService {
             throw new RuntimeException("Failed to save notification");
         }
 
-        // Send realtime socket
-        notificationPublisher.sendToUser(result.getAccountId(), notificationDto);
+        // Send realtime socket - ✅ FIX: send 'result' thay vì 'notificationDto'
+        notificationPublisher.sendToUser(result.getAccountId(), result);
 
         try {
             NotificationTypeEnum type = NotificationTypeEnum.fromCodeValue(result.getType());
