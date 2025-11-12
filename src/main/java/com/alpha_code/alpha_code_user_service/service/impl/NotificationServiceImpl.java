@@ -8,22 +8,23 @@ import com.alpha_code.alpha_code_user_service.publisher.NotificationPublisher;
 import com.alpha_code.alpha_code_user_service.repository.AccountRepository;
 import com.alpha_code.alpha_code_user_service.service.MailService;
 import com.alpha_code.alpha_code_user_service.service.NotificationService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Service;
 import org.springframework.data.redis.core.StringRedisTemplate;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,29 +51,42 @@ public class NotificationServiceImpl implements NotificationService {
         return ACCOUNT_SET_PREFIX + accountId.toString();
     }
 
+    // ---------------- Helper: adjust timezone +7h ----------------
+    private NotificationDto adjustTimezone(NotificationDto dto) {
+        if (dto.getCreatedDate() != null)
+            dto.setCreatedDate(dto.getCreatedDate().plusHours(7));
+        if (dto.getLastUpdated() != null)
+            dto.setLastUpdated(dto.getLastUpdated().plusHours(7));
+        return dto;
+    }
+
+    private List<NotificationDto> adjustTimezoneList(List<NotificationDto> dtos) {
+        return dtos.stream().map(this::adjustTimezone).collect(Collectors.toList());
+    }
+
+    // ---------------- GET ALL ----------------
     @Override
     @Cacheable(value = "notifications_list", key = "{#page, #size, #accountId, #status}")
     public PagedResult<NotificationDto> getAll(int page, int size, UUID accountId, Integer status) {
-        // Use Redis sorted sets for pagination. We sort by created timestamp (stored as score).
         int pageIndex = Math.max(page - 1, 0);
         int start = pageIndex * size;
         int end = start + size - 1;
 
-        String zKey = (accountId != null) ? accountSetKey(accountId) : GLOBAL_SET;
-
+        String zKey = accountId != null ? accountSetKey(accountId) : GLOBAL_SET;
         Long total = redisTemplate.opsForZSet().zCard(zKey);
         if (total == null || total == 0) {
-            Page<NotificationDto> empty = new PageImpl<>(Collections.emptyList(), PageRequest.of(pageIndex, size), 0);
-            return new PagedResult<>(empty);
+            return new PagedResult<>(new PageImpl<>(Collections.emptyList(), PageRequest.of(pageIndex, size), 0));
         }
 
         Set<String> idMembers = redisTemplate.opsForZSet().reverseRange(zKey, start, end);
         if (idMembers == null || idMembers.isEmpty()) {
-            Page<NotificationDto> empty = new PageImpl<>(Collections.emptyList(), PageRequest.of(pageIndex, size), total);
-            return new PagedResult<>(empty);
+            return new PagedResult<>(new PageImpl<>(Collections.emptyList(), PageRequest.of(pageIndex, size), total));
         }
 
-        List<String> keys = idMembers.stream().map(s -> PREFIX + s).collect(Collectors.toList());
+        List<String> keys = idMembers.stream()
+                .map(UUID::fromString)       // String -> UUID
+                .map(this::notificationKey)  // UUID -> Redis key
+                .collect(Collectors.toList());
         List<String> jsons = redisTemplate.opsForValue().multiGet(keys);
         List<NotificationDto> dtos = new ArrayList<>();
         if (jsons != null) {
@@ -80,7 +94,6 @@ public class NotificationServiceImpl implements NotificationService {
                 if (j == null) continue;
                 try {
                     NotificationDto dto = objectMapper.readValue(j, NotificationDto.class);
-                    // Filter by status if requested
                     if (status == null || Objects.equals(dto.getStatus(), status)) {
                         dtos.add(dto);
                     }
@@ -90,107 +103,96 @@ public class NotificationServiceImpl implements NotificationService {
             }
         }
 
+        // Adjust timezone +7h
+        dtos = adjustTimezoneList(dtos);
+
         Page<NotificationDto> pageResult = new PageImpl<>(dtos, PageRequest.of(pageIndex, size), total);
         return new PagedResult<>(pageResult);
     }
 
+    // ---------------- GET BY ID ----------------
     @Override
     @Cacheable(value = "notifications", key = "#id")
     public NotificationDto getById(UUID id) {
         String key = notificationKey(id);
         String json = redisTemplate.opsForValue().get(key);
-        if (json == null) {
-            throw new ResourceNotFoundException("Notification not found");
-        }
+        if (json == null) throw new ResourceNotFoundException("Notification not found");
         try {
-            return objectMapper.readValue(json, NotificationDto.class);
+            NotificationDto dto = objectMapper.readValue(json, NotificationDto.class);
+            return adjustTimezone(dto);
         } catch (Exception e) {
             log.error("Deserialize error", e);
             throw new ResourceNotFoundException("Notification not found");
         }
     }
 
+    // ---------------- CREATE ----------------
     @Override
     @Transactional
-    @CacheEvict(value = {"notifications_list", "notifications"}, allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "notifications_list", allEntries = true)
+    })
     public NotificationDto create(NotificationDto notificationDto) {
-        // Prepare DTO
-        NotificationDto result = new NotificationDto();
         UUID id = notificationDto.getId() != null ? notificationDto.getId() : UUID.randomUUID();
+        NotificationDto result = new NotificationDto();
         result.setId(id);
-
-        Instant now = Instant.now();
-        result.setCreatedDate(LocalDateTime.now());
         result.setAccountId(notificationDto.getAccountId());
         result.setType(notificationDto.getType());
         result.setTitle(notificationDto.getTitle());
         result.setMessage(notificationDto.getMessage());
         result.setIsRead(notificationDto.getIsRead() != null ? notificationDto.getIsRead() : Boolean.FALSE);
         result.setStatus(notificationDto.getStatus());
-        result.setLastUpdated(LocalDateTime.now());
+
+        // Lưu UTC trong Redis
+        Instant now = Instant.now();
+        result.setCreatedDate(LocalDateTime.ofInstant(now, ZoneOffset.UTC));
+        result.setLastUpdated(LocalDateTime.ofInstant(now, ZoneOffset.UTC));
         result.setOrderCode(notificationDto.getOrderCode());
         result.setServiceName(notificationDto.getServiceName());
         result.setPrice(notificationDto.getPrice());
 
         try {
             String json = objectMapper.writeValueAsString(result);
-            String key = notificationKey(id);
-            // Save JSON
-            redisTemplate.opsForValue().set(key, json);
-            // Add to account sorted set and global set with score = epoch millis
+            redisTemplate.opsForValue().set(notificationKey(id), json);
+
             long score = now.toEpochMilli();
             if (result.getAccountId() != null) {
                 redisTemplate.opsForZSet().add(accountSetKey(result.getAccountId()), id.toString(), score);
             }
             redisTemplate.opsForZSet().add(GLOBAL_SET, id.toString(), score);
+
+            // Realtime publish
+            notificationPublisher.sendToUser(result.getAccountId(), result);
+
+            // Send email if needed
+            NotificationTypeEnum type = NotificationTypeEnum.fromCodeValue(result.getType());
+            if (type == NotificationTypeEnum.PAYMENT_SUCCESS) {
+                var account = accountRepository.findById(result.getAccountId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+                mailService.sendPaymentSuccessEmail(account.getEmail(), account.getFullName(),
+                        result.getServiceName(), result.getOrderCode(), result.getPrice());
+            }
+            if (type == NotificationTypeEnum.FINISHCOURSE) {
+                var account = accountRepository.findById(result.getAccountId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+                mailService.sendCourseCompletedEmail(account.getEmail(), account.getFullName(),
+                        result.getServiceName(), result.getMessage(), result.getAccountId().toString());
+            }
         } catch (Exception e) {
             log.error("Failed to save notification to Redis", e);
             throw new RuntimeException("Failed to save notification");
         }
 
-        // Send realtime socket - ✅ FIX: send 'result' thay vì 'notificationDto'
-        notificationPublisher.sendToUser(result.getAccountId(), result);
-
-        try {
-            NotificationTypeEnum type = NotificationTypeEnum.fromCodeValue(result.getType());
-
-            if (type == NotificationTypeEnum.PAYMENT_SUCCESS) {
-                var account = accountRepository.findById(result.getAccountId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản để gửi email"));
-
-                mailService.sendPaymentSuccessEmail(
-                        account.getEmail(),
-                        account.getFullName(),
-                        notificationDto.getServiceName(),  // Tên gói dịch vụ
-                        notificationDto.getOrderCode(),    // Mã đơn hàng
-                        notificationDto.getPrice()         // Giá
-                );
-            }
-
-            if(type == NotificationTypeEnum.FINISHCOURSE){
-                var account = accountRepository.findById(result.getAccountId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản để gửi email"));
-
-                mailService.sendCourseCompletedEmail(
-                        account.getEmail(),
-                        account.getFullName(),
-                        notificationDto.getServiceName(),
-                        notificationDto.getMessage(), // Tên khóa học
-                        notificationDto.getAccountId().toString()
-                );
-            }
-
-        } catch (Exception e) {
-            log.error("Lỗi khi gửi email thông báo: ", e);
-        }
-
-        return result;
+        return adjustTimezone(result);
     }
 
+    // ---------------- UPDATE ----------------
     @Override
     @Transactional
-    @CacheEvict(value = "notifications_list", allEntries = true)
-    @CachePut(value = "notifications", key = "#notificationDto.id")
+    @Caching(evict = {
+            @CacheEvict(value = "notifications_list", allEntries = true),
+            @CacheEvict(value = "notifications", key = "#id")
+    })
     public NotificationDto update(UUID id, NotificationDto notificationDto) {
         String key = notificationKey(id);
         String json = redisTemplate.opsForValue().get(key);
@@ -198,38 +200,39 @@ public class NotificationServiceImpl implements NotificationService {
         try {
             NotificationDto existing = objectMapper.readValue(json, NotificationDto.class);
             UUID oldAccountId = existing.getAccountId();
+
             existing.setAccountId(notificationDto.getAccountId());
             existing.setType(notificationDto.getType());
             existing.setTitle(notificationDto.getTitle());
             existing.setMessage(notificationDto.getMessage());
             existing.setIsRead(notificationDto.getIsRead());
             existing.setStatus(notificationDto.getStatus());
-            existing.setLastUpdated(LocalDateTime.now());
+            existing.setLastUpdated(LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC));
 
-            String newJson = objectMapper.writeValueAsString(existing);
-            redisTemplate.opsForValue().set(key, newJson);
-            // ensure sorted sets updated if accountId changed
+            redisTemplate.opsForValue().set(key, objectMapper.writeValueAsString(existing));
+
             if (!Objects.equals(oldAccountId, notificationDto.getAccountId())) {
-                // remove from old account set and add to new one
-                // best-effort: remove from all account sets is expensive; assume accountId provided correctly
-                if (oldAccountId != null) {
+                if (oldAccountId != null)
                     redisTemplate.opsForZSet().remove(accountSetKey(oldAccountId), id.toString());
-                }
-                if (notificationDto.getAccountId() != null) {
-                    redisTemplate.opsForZSet().add(accountSetKey(notificationDto.getAccountId()), id.toString(), Instant.now().toEpochMilli());
-                }
+                if (notificationDto.getAccountId() != null)
+                    redisTemplate.opsForZSet().add(accountSetKey(notificationDto.getAccountId()), id.toString(),
+                            Instant.now().toEpochMilli());
             }
-            return existing;
+
+            return adjustTimezone(existing);
         } catch (Exception e) {
             log.error("Failed to update notification in Redis", e);
             throw new RuntimeException("Failed to update notification");
         }
     }
 
+    // ---------------- PATCH UPDATE ----------------
     @Override
     @Transactional
-    @CacheEvict(value = "notifications_list", allEntries = true)
-    @CachePut(value = "notifications", key = "#notificationDto.id")
+    @Caching(evict = {
+            @CacheEvict(value = "notifications_list", allEntries = true),
+            @CacheEvict(value = "notifications", key = "#id")
+    })
     public NotificationDto patchUpdate(UUID id, NotificationDto notificationDto) {
         String key = notificationKey(id);
         String json = redisTemplate.opsForValue().get(key);
@@ -244,44 +247,44 @@ public class NotificationServiceImpl implements NotificationService {
             if (notificationDto.getIsRead() != null) existing.setIsRead(notificationDto.getIsRead());
             if (notificationDto.getStatus() != null) existing.setStatus(notificationDto.getStatus());
 
-            existing.setLastUpdated(LocalDateTime.now());
-            String newJson = objectMapper.writeValueAsString(existing);
-            redisTemplate.opsForValue().set(key, newJson);
-            return existing;
+            existing.setLastUpdated(LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC));
+            redisTemplate.opsForValue().set(key, objectMapper.writeValueAsString(existing));
+
+            return adjustTimezone(existing);
         } catch (Exception e) {
             log.error("Failed to patch update notification in Redis", e);
             throw new RuntimeException("Failed to patch update notification");
         }
     }
 
+    // ---------------- DELETE ----------------
     @Override
     @Transactional
-    @CacheEvict(value = "{notifications_list, notifications}", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "notifications_list", allEntries = true),
+            @CacheEvict(value = "notifications", key = "#id")
+    })
     public String delete(UUID id) {
         String key = notificationKey(id);
         String json = redisTemplate.opsForValue().get(key);
         if (json == null) throw new ResourceNotFoundException("Notification not found");
         try {
             NotificationDto existing = objectMapper.readValue(json, NotificationDto.class);
-            existing.setStatus(0);
-            existing.setLastUpdated(LocalDateTime.now());
-            String newJson = objectMapper.writeValueAsString(existing);
-            redisTemplate.opsForValue().set(key, newJson);
-            // remove from account set & global? keep in global but mark status=0; keep consistent
-            if (existing.getAccountId() != null) {
+            redisTemplate.delete(key);
+            if (existing.getAccountId() != null)
                 redisTemplate.opsForZSet().remove(accountSetKey(existing.getAccountId()), id.toString());
-            }
             redisTemplate.opsForZSet().remove(GLOBAL_SET, id.toString());
-            redisTemplate.delete(key); // optional: remove actual key
-            return "Xóa thành công Notification với ID: " + id;
+            return "Deleted notification " + id;
         } catch (Exception e) {
-            throw new ResourceNotFoundException("Notification not found");
+            log.error("Failed to delete notification", e);
+            throw new RuntimeException("Failed to delete notification");
         }
     }
 
+    // ---------------- CHANGE STATUS ----------------
     @Override
     @Transactional
-    @CacheEvict(value = "{notifications_list, notifications}", allEntries = true)
+    @CacheEvict(value = "notifications", key = "#id")
     public NotificationDto changeStatus(UUID id, Integer status) {
         String key = notificationKey(id);
         String json = redisTemplate.opsForValue().get(key);
@@ -289,19 +292,19 @@ public class NotificationServiceImpl implements NotificationService {
         try {
             NotificationDto existing = objectMapper.readValue(json, NotificationDto.class);
             existing.setStatus(status);
-            existing.setLastUpdated(LocalDateTime.now());
-            String newJson = objectMapper.writeValueAsString(existing);
-            redisTemplate.opsForValue().set(key, newJson);
-            return existing;
+            existing.setLastUpdated(LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC));
+            redisTemplate.opsForValue().set(key, objectMapper.writeValueAsString(existing));
+            return adjustTimezone(existing);
         } catch (Exception e) {
-            log.error("Failed to change status in Redis", e);
+            log.error("Failed to change status", e);
             throw new RuntimeException("Failed to change status");
         }
     }
 
+    // ---------------- READ NOTIFICATION ----------------
     @Override
     @Transactional
-    @CacheEvict(value = "{notifications_list, notifications}", allEntries = true)
+    @CachePut(value = "notifications", key = "#id")
     public NotificationDto readNotification(UUID id) {
         String key = notificationKey(id);
         String json = redisTemplate.opsForValue().get(key);
@@ -309,58 +312,56 @@ public class NotificationServiceImpl implements NotificationService {
         try {
             NotificationDto existing = objectMapper.readValue(json, NotificationDto.class);
             existing.setIsRead(true);
-            existing.setLastUpdated(LocalDateTime.now());
-            String newJson = objectMapper.writeValueAsString(existing);
-            redisTemplate.opsForValue().set(key, newJson);
-            return existing;
+            existing.setLastUpdated(LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC));
+            redisTemplate.opsForValue().set(key, objectMapper.writeValueAsString(existing));
+            return adjustTimezone(existing);
         } catch (Exception e) {
-            log.error("Failed to mark notification read in Redis", e);
+            log.error("Failed to mark notification read", e);
             throw new RuntimeException("Failed to read notification");
         }
     }
 
+    // ---------------- READ ALL NOTIFICATIONS ----------------
     @Override
     @Transactional
-    @CacheEvict(value = "{notifications_list, notifications}", allEntries = true)
     public Map<String, Object> readAllNotifications(UUID accountId) {
-        if (accountId == null) {
-            throw new IllegalArgumentException("Account ID is required");
-        }
+        if (accountId == null) throw new IllegalArgumentException("Account ID required");
 
         String zKey = accountSetKey(accountId);
         Set<String> allIds = redisTemplate.opsForZSet().range(zKey, 0, -1);
-
         if (allIds == null || allIds.isEmpty()) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "No notifications found for this account");
-            response.put("count", 0);
-            return response;
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("message", "No notifications found");
+            resp.put("count", 0);
+            return resp;
         }
 
         int count = 0;
         for (String idStr : allIds) {
             try {
-                String key = PREFIX + idStr;
+                UUID id = UUID.fromString(idStr);
+                String key = notificationKey(id);
                 String json = redisTemplate.opsForValue().get(key);
                 if (json != null) {
                     NotificationDto dto = objectMapper.readValue(json, NotificationDto.class);
-                    // Only update if not already read
                     if (!Boolean.TRUE.equals(dto.getIsRead())) {
                         dto.setIsRead(true);
-                        dto.setLastUpdated(LocalDateTime.now());
-                        String newJson = objectMapper.writeValueAsString(dto);
-                        redisTemplate.opsForValue().set(key, newJson);
+                        dto.setLastUpdated(LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC));
+                        redisTemplate.opsForValue().set(key, objectMapper.writeValueAsString(dto));
                         count++;
                     }
                 }
             } catch (Exception e) {
-                log.error("Failed to mark notification as read: " + idStr, e);
+                log.error("Failed to mark notification read: " + idStr, e);
             }
         }
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "Successfully marked " + count + " notification(s) as read");
-        response.put("count", count);
-        return response;
+        // Evict cache list related
+        redisTemplate.delete(redisTemplate.keys("notifications_list*"));
+
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("message", "Successfully marked " + count + " notification(s) as read");
+        resp.put("count", count);
+        return resp;
     }
 }
