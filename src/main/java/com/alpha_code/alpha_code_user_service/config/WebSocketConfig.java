@@ -12,9 +12,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws") // endpoint để client connect
-                .setAllowedOriginPatterns("*") // cho phép mọi domain (có thể giới hạn lại)
-                .withSockJS(); // fallback cho client cũ
+        // WebSocket thuần (native WebSocket only)
+        registry.addEndpoint("/ws")
+                .setAllowedOriginPatterns("*"); // cho phép mọi domain
     }
 
     @Override
