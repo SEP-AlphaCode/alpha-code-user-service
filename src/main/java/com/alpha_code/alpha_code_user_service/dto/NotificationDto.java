@@ -19,13 +19,11 @@ import java.util.UUID;
 public class NotificationDto implements Serializable {
     private UUID id;
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime createdDate;
 
     @NotNull(message = "Account ID không được để trống.", groups = {OnCreate.class})
     private UUID accountId;
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String accountFullName;
 
     @NotNull(message = "Loại thông báo không được để trống.", groups = {OnCreate.class})
@@ -37,13 +35,11 @@ public class NotificationDto implements Serializable {
     @NotNull(message = "Nội dung không được để trống.", groups = {OnCreate.class})
     private String message;
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Boolean isRead = false;
 
     @NotNull(message = "Trạng thái không được để trống.", groups = {OnCreate.class})
     private Integer status;
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime lastUpdated;
 
     // Các field chỉ dùng khi tạo notification thanh toán — có thể null

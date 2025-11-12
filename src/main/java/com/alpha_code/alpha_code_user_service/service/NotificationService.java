@@ -2,7 +2,6 @@ package com.alpha_code.alpha_code_user_service.service;
 
 import com.alpha_code.alpha_code_user_service.dto.NotificationDto;
 import com.alpha_code.alpha_code_user_service.dto.PagedResult;
-import com.alpha_code.alpha_code_user_service.entity.Notification;
 
 import java.util.UUID;
 
@@ -22,4 +21,6 @@ public interface NotificationService {
     NotificationDto changeStatus(UUID id, Integer status);
 
     NotificationDto readNotification(UUID id);
+
+    java.util.Map<String, Object> readAllNotifications(UUID accountId);
 }

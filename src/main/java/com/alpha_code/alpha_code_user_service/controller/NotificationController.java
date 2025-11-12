@@ -70,4 +70,10 @@ public class NotificationController {
     public NotificationDto readNotification(@PathVariable UUID id) {
         return service.readNotification(id);
     }
+
+    @PatchMapping("/read-all")
+    @Operation(summary = "Mark all notifications as read for a specific account")
+    public java.util.Map<String, Object> readAllNotifications(@RequestParam UUID accountId) {
+        return service.readAllNotifications(accountId);
+    }
 }

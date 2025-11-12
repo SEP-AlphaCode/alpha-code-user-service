@@ -4,7 +4,6 @@ import com.alpha_code.alpha_code_user_service.dto.NotificationDto;
 import com.alpha_code.alpha_code_user_service.dto.PagedResult;
 import com.alpha_code.alpha_code_user_service.enums.NotificationTypeEnum;
 import com.alpha_code.alpha_code_user_service.exception.ResourceNotFoundException;
-import com.alpha_code.alpha_code_user_service.mapper.NotificationMapper;
 import com.alpha_code.alpha_code_user_service.publisher.NotificationPublisher;
 import com.alpha_code.alpha_code_user_service.repository.AccountRepository;
 import com.alpha_code.alpha_code_user_service.service.MailService;
@@ -25,7 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -319,5 +317,50 @@ public class NotificationServiceImpl implements NotificationService {
             log.error("Failed to mark notification read in Redis", e);
             throw new RuntimeException("Failed to read notification");
         }
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "notifications", allEntries = true)
+    public Map<String, Object> readAllNotifications(UUID accountId) {
+        if (accountId == null) {
+            throw new IllegalArgumentException("Account ID is required");
+        }
+
+        String zKey = accountSetKey(accountId);
+        Set<String> allIds = redisTemplate.opsForZSet().range(zKey, 0, -1);
+
+        if (allIds == null || allIds.isEmpty()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "No notifications found for this account");
+            response.put("count", 0);
+            return response;
+        }
+
+        int count = 0;
+        for (String idStr : allIds) {
+            try {
+                String key = PREFIX + idStr;
+                String json = redisTemplate.opsForValue().get(key);
+                if (json != null) {
+                    NotificationDto dto = objectMapper.readValue(json, NotificationDto.class);
+                    // Only update if not already read
+                    if (!Boolean.TRUE.equals(dto.getIsRead())) {
+                        dto.setIsRead(true);
+                        dto.setLastUpdated(LocalDateTime.now());
+                        String newJson = objectMapper.writeValueAsString(dto);
+                        redisTemplate.opsForValue().set(key, newJson);
+                        count++;
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Failed to mark notification as read: " + idStr, e);
+            }
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Successfully marked " + count + " notification(s) as read");
+        response.put("count", count);
+        return response;
     }
 }
