@@ -176,7 +176,7 @@ public class NotificationServiceImpl implements NotificationService {
                 var account = accountRepository.findById(result.getAccountId())
                         .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
                 mailService.sendCourseCompletedEmail(account.getEmail(), account.getFullName(),
-                        result.getServiceName(), result.getMessage(), result.getAccountId().toString());
+                        result.getMessage(), result.getServiceName(), result.getAccountId().toString());
             }
         } catch (Exception e) {
             log.error("Failed to save notification to Redis", e);

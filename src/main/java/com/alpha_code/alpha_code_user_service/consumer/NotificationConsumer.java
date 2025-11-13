@@ -61,10 +61,10 @@ public class NotificationConsumer {
 
         var noti = new NotificationDto();
         noti.setAccountId(accountId);
-        noti.setTitle("Hoàn thành khóa học");
-        noti.setMessage(courseIdStr);
+        noti.setTitle("Chúc mừng bạn đã hoàn thành khóa học!");
+        noti.setMessage(courseName);
         noti.setType(NotificationTypeEnum.FINISHCOURSE.getCode());
-        noti.setServiceName(courseName);
+        noti.setServiceName(courseIdStr);
         noti.setStatus(1);
 
         notificationService.create(noti);

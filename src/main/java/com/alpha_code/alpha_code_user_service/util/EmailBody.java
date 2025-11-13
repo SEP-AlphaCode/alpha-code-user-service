@@ -6,15 +6,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class EmailBody {
 
-    @Value("${web-base-url")
+    @Value("${web-base-url}")
     private String websiteUrl;
 
     public static String getResetPasswordEmailBody(String fullName, String resetLink) {
         return """
                 <html>
                 <body style="font-family: Arial, sans-serif; background-color: #f5f7fa; margin: 0; padding: 0;">
-                    <table align="center" width="100%" cellpadding="0" cellspacing="0" 
-                           style="max-width: 600px; margin: auto; background: #ffffff; border-radius: 12px; 
+                    <table align="center" width="100%" cellpadding="0" cellspacing="0"
+                           style="max-width: 600px; margin: auto; background: #ffffff; border-radius: 12px;
                                   overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                         <tr style="background-color: #2b2d42;">
                             <td align="center" style="padding: 24px;">
@@ -103,9 +103,9 @@ public class EmailBody {
                     <p>Chứng chỉ của bạn đã sẵn sàng! Nhấn vào nút bên dưới để xem và tải chứng chỉ của bạn:</p>
 
                     <div style="text-align: center; margin: 30px 0;">
-                        <a href="%s"\s
-                           style="background-color: #2a7ae2; color: #fff; text-decoration: none;\s
-                                  padding: 14px 28px; border-radius: 8px; font-size: 16px; font-weight: bold;">
+                        <a href="%s" target="_blank" rel="noopener noreferrer"
+                           style="background-color: #2a7ae2; color: #fff; text-decoration: none;
+                                  padding: 14px 28px; border-radius: 8px; font-size: 16px; font-weight: bold; display: inline-block;">
                             Xem chứng chỉ
                         </a>
                     </div>
@@ -115,6 +115,6 @@ public class EmailBody {
                 </div>
             </body>
             </html>
-           \s""", fullName, fullName, courseName, courseId, certificateLink);
+           """, fullName, fullName, courseName, courseId, certificateLink);
     }
 }
