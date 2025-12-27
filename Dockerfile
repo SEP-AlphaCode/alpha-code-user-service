@@ -11,8 +11,8 @@ RUN mvn dependency:go-offline
 COPY src ./src
 COPY src/main/proto ./src/main/proto
 
-# Build + generate gRPC classes
-RUN mvn clean package -DskipTests
+# Build + generate gRPC classes + run tests
+RUN mvn clean test package
 
 # Stage 2: Run ứng dụng
 FROM eclipse-temurin:24-jdk AS runtime
