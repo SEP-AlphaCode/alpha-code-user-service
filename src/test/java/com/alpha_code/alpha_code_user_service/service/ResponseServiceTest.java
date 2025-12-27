@@ -1,6 +1,5 @@
 package com.alpha_code.alpha_code_user_service.service;
 
-import com.alpha_code.alpha_code_user_service.dto.PagedResult;
 import com.alpha_code.alpha_code_user_service.dto.ResponseDto;
 import com.alpha_code.alpha_code_user_service.entity.Request;
 import com.alpha_code.alpha_code_user_service.entity.Response;
